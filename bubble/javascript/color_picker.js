@@ -92,28 +92,55 @@
 
 <script>
 (function() {
-  const STORAGE_KEY = 'mapflow_custom_colors';
-  
-  // État du picker
-  let currentHue = 0;
-  let currentSaturation = 100;
-  let currentLightness = 50;
-  let currentOpacity = 100;
-  
-  // Éléments DOM
-  const canvas = document.getElementById('color-canvas');
-  const ctx = canvas.getContext('2d');
-  const colorBox = document.getElementById('color-gradient-box');
-  const colorCursor = document.getElementById('color-cursor');
-  const hueBar = document.getElementById('hue-bar');
-  const hueCursor = document.getElementById('hue-cursor');
-  const opacityBar = document.getElementById('opacity-bar');
-  const opacityCursor = document.getElementById('opacity-cursor');
-  const hexInput = document.getElementById('hex-input');
-  const opacityInput = document.getElementById('opacity-input');
-  const colorNameInput = document.getElementById('color-name-input');
-  const panel = document.getElementById('custom-color-panel');
-  const customColorsBar = document.getElementById('custom-colors-bar');
+  // Attendre que le DOM soit complètement chargé
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  function init() {
+    console.log('[ColorPicker] Initializing...');
+
+    const STORAGE_KEY = 'mapflow_custom_colors';
+
+    // État du picker
+    let currentHue = 0;
+    let currentSaturation = 100;
+    let currentLightness = 50;
+    let currentOpacity = 100;
+
+    // Éléments DOM - avec vérifications
+    const canvas = document.getElementById('color-canvas');
+    const colorBox = document.getElementById('color-gradient-box');
+    const colorCursor = document.getElementById('color-cursor');
+    const hueBar = document.getElementById('hue-bar');
+    const hueCursor = document.getElementById('hue-cursor');
+    const opacityBar = document.getElementById('opacity-bar');
+    const opacityCursor = document.getElementById('opacity-cursor');
+    const hexInput = document.getElementById('hex-input');
+    const opacityInput = document.getElementById('opacity-input');
+    const colorNameInput = document.getElementById('color-name-input');
+    const panel = document.getElementById('custom-color-panel');
+    const customColorsBar = document.getElementById('custom-colors-bar');
+    const addBtn = document.getElementById('add-custom-color-btn');
+    const cancelBtn = document.getElementById('cancel-color-btn');
+    const saveBtn = document.getElementById('save-color-btn');
+
+    // Vérifier que tous les éléments essentiels existent
+    if (!canvas || !colorBox || !panel || !addBtn) {
+      console.error('[ColorPicker] Missing required DOM elements:', {
+        canvas: !!canvas,
+        colorBox: !!colorBox,
+        panel: !!panel,
+        addBtn: !!addBtn
+      });
+      return;
+    }
+
+    console.log('[ColorPicker] All DOM elements found');
+
+    const ctx = canvas.getContext('2d');
   
   // Dessiner le gradient de saturation/luminosité
   function drawColorGradient() {
@@ -278,19 +305,22 @@
   });
   
   // Ouvrir le panneau
-  document.getElementById('add-custom-color-btn').addEventListener('click', function() {
+  addBtn.addEventListener('click', function() {
+    console.log('[ColorPicker] Opening panel');
     panel.style.display = 'block';
     drawColorGradient();
     updateColor();
   });
-  
+
   // Fermer le panneau
-  document.getElementById('cancel-color-btn').addEventListener('click', function() {
+  cancelBtn.addEventListener('click', function() {
+    console.log('[ColorPicker] Closing panel');
     panel.style.display = 'none';
   });
-  
+
   // Sauvegarder la couleur
-  document.getElementById('save-color-btn').addEventListener('click', function() {
+  saveBtn.addEventListener('click', function() {
+    console.log('[ColorPicker] Saving color');
     const hex = '#' + hexInput.value;
     const name = colorNameInput.value.trim() || hex;
     const opacity = currentOpacity;
@@ -343,11 +373,14 @@
   drawColorGradient();
   updateColor();
   renderCustomColors();
-  
+
   // Positionner les curseurs initialement
   hueCursor.style.left = '0px';
   opacityCursor.style.left = document.getElementById('opacity-bar-bg').offsetWidth + 'px';
   colorCursor.style.left = '200px';
   colorCursor.style.top = '0px';
+
+  console.log('[ColorPicker] Initialization complete');
+  } // Fin de la fonction init()
 })();
 </script>
