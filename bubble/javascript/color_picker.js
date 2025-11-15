@@ -116,6 +116,7 @@
     const hueBar = document.getElementById('hue-bar');
     const hueCursor = document.getElementById('hue-cursor');
     const opacityBar = document.getElementById('opacity-bar');
+    const opacityBarBg = document.getElementById('opacity-bar-bg');
     const opacityCursor = document.getElementById('opacity-cursor');
     const hexInput = document.getElementById('hex-input');
     const opacityInput = document.getElementById('opacity-input');
@@ -134,6 +135,7 @@
       hueBar,
       hueCursor,
       opacityBar,
+      opacityBarBg,
       opacityCursor,
       hexInput,
       opacityInput,
@@ -257,18 +259,18 @@
   });
   
   // Interaction avec la barre d'opacité
-  document.getElementById('opacity-bar-bg').addEventListener('mousedown', function(e) {
+  opacityBarBg.addEventListener('mousedown', function(e) {
     function handleMove(e) {
-      const rect = document.getElementById('opacity-bar-bg').getBoundingClientRect();
+      const rect = opacityBarBg.getBoundingClientRect();
       let x = e.clientX - rect.left;
       x = Math.max(0, Math.min(rect.width, x));
-      
+
       currentOpacity = Math.round((x / rect.width) * 100);
       opacityCursor.style.left = x + 'px';
-      
+
       updateColor();
     }
-    
+
     handleMove(e);
     document.addEventListener('mousemove', handleMove);
     document.addEventListener('mouseup', function() {
@@ -318,7 +320,7 @@
   // Input opacité manuel
   opacityInput.addEventListener('input', function() {
     currentOpacity = Math.max(0, Math.min(100, parseInt(this.value) || 0));
-    opacityCursor.style.left = (currentOpacity / 100 * document.getElementById('opacity-bar-bg').offsetWidth) + 'px';
+    opacityCursor.style.left = (currentOpacity / 100 * opacityBarBg.offsetWidth) + 'px';
   });
   
   // Ouvrir le panneau
@@ -393,7 +395,7 @@
 
   // Positionner les curseurs initialement
   hueCursor.style.left = '0px';
-  opacityCursor.style.left = document.getElementById('opacity-bar-bg').offsetWidth + 'px';
+  opacityCursor.style.left = opacityBarBg.offsetWidth + 'px';
   colorCursor.style.left = '200px';
   colorCursor.style.top = '0px';
 
