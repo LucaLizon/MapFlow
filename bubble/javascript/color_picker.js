@@ -127,8 +127,17 @@
     const cancelBtn = document.getElementById('cancel-color-btn');
     const saveBtn = document.getElementById('save-color-btn');
 
-    // Vérifier que tous les éléments essentiels existent
+    // Vérifier que tous les éléments ESSENTIELS existent (pour ouvrir le panneau)
     const requiredElements = {
+      panel,
+      addBtn,
+      cancelBtn,
+      saveBtn,
+      customColorsBar
+    };
+
+    // Éléments optionnels pour le picker (on les vérifiera avant utilisation)
+    const optionalElements = {
       canvas,
       colorBox,
       colorCursor,
@@ -139,12 +148,7 @@
       opacityCursor,
       hexInput,
       opacityInput,
-      colorNameInput,
-      panel,
-      customColorsBar,
-      addBtn,
-      cancelBtn,
-      saveBtn
+      colorNameInput
     };
 
     const missingElements = Object.entries(requiredElements)
@@ -157,19 +161,29 @@
       return;
     }
 
-    console.log('[ColorPicker] All DOM elements found');
+    console.log('[ColorPicker] Essential DOM elements found');
 
-    const ctx = canvas.getContext('2d');
+    // Vérifier les éléments optionnels
+    const missingOptional = Object.entries(optionalElements)
+      .filter(([name, element]) => !element)
+      .map(([name]) => name);
+
+    if (missingOptional.length > 0) {
+      console.warn('[ColorPicker] Missing optional elements (picker may have limited functionality):', missingOptional);
+    }
+
+    const ctx = canvas ? canvas.getContext('2d') : null;
   
   // Dessiner le gradient de saturation/luminosité
   function drawColorGradient() {
+    if (!ctx) return;
     // Gradient horizontal : blanc vers couleur pure
     const gradientH = ctx.createLinearGradient(0, 0, 200, 0);
     gradientH.addColorStop(0, 'white');
     gradientH.addColorStop(1, `hsl(${currentHue}, 100%, 50%)`);
     ctx.fillStyle = gradientH;
     ctx.fillRect(0, 0, 200, 200);
-    
+
     // Gradient vertical : transparent vers noir
     const gradientV = ctx.createLinearGradient(0, 0, 0, 200);
     gradientV.addColorStop(0, 'rgba(0, 0, 0, 0)');
@@ -203,16 +217,18 @@
   
   // Mettre à jour l'affichage
   function updateColor() {
+    if (!hexInput || !opacityInput || !opacityBar) return;
     const hex = hslToHex(currentHue, currentSaturation, currentLightness);
     hexInput.value = hex.substring(1);
     opacityInput.value = currentOpacity;
-    
+
     // Mettre à jour le gradient d'opacité
     const color = `hsl(${currentHue}, ${currentSaturation}%, ${currentLightness}%)`;
     opacityBar.style.background = `linear-gradient(90deg, transparent 0%, ${color} 100%)`;
   }
-  
+
   // Interaction avec la zone de couleur
+  if (colorBox && colorCursor) {
   colorBox.addEventListener('mousedown', function(e) {
     function handleMove(e) {
       const rect = colorBox.getBoundingClientRect();
@@ -236,8 +252,10 @@
       document.removeEventListener('mousemove', handleMove);
     }, { once: true });
   });
-  
+  }
+
   // Interaction avec la barre de teinte
+  if (hueBar && hueCursor) {
   hueBar.addEventListener('mousedown', function(e) {
     function handleMove(e) {
       const rect = hueBar.getBoundingClientRect();
@@ -257,8 +275,10 @@
       document.removeEventListener('mousemove', handleMove);
     }, { once: true });
   });
-  
+  }
+
   // Interaction avec la barre d'opacité
+  if (opacityBarBg && opacityCursor) {
   opacityBarBg.addEventListener('mousedown', function(e) {
     function handleMove(e) {
       const rect = opacityBarBg.getBoundingClientRect();
@@ -277,8 +297,10 @@
       document.removeEventListener('mousemove', handleMove);
     }, { once: true });
   });
-  
+  }
+
   // Input HEX manuel
+  if (hexInput && hueBar && hueCursor && colorCursor) {
   hexInput.addEventListener('input', function() {
     const hex = this.value.toUpperCase();
     if (/^[0-9A-F]{6}$/.test(hex)) {
@@ -316,13 +338,16 @@
       colorCursor.style.top = ((100 - currentLightness) / 100 * 200) + 'px';
     }
   });
-  
+  }
+
   // Input opacité manuel
+  if (opacityInput && opacityCursor && opacityBarBg) {
   opacityInput.addEventListener('input', function() {
     currentOpacity = Math.max(0, Math.min(100, parseInt(this.value) || 0));
     opacityCursor.style.left = (currentOpacity / 100 * opacityBarBg.offsetWidth) + 'px';
   });
-  
+  }
+
   // Ouvrir le panneau
   addBtn.addEventListener('click', function() {
     console.log('[ColorPicker] Opening panel');
@@ -340,19 +365,21 @@
   // Sauvegarder la couleur
   saveBtn.addEventListener('click', function() {
     console.log('[ColorPicker] Saving color');
-    const hex = '#' + hexInput.value;
-    const name = colorNameInput.value.trim() || hex;
+    const hex = hexInput ? '#' + hexInput.value : '#FFFFFF';
+    const name = colorNameInput ? (colorNameInput.value.trim() || hex) : hex;
     const opacity = currentOpacity;
-    
+
     const colors = getCustomColors();
     colors.push({ hex, name, opacity });
     saveCustomColors(colors);
-    
-    colorNameInput.value = '';
+
+    if (colorNameInput) colorNameInput.value = '';
     panel.style.display = 'none';
-    
+
     // Appliquer immédiatement
-    window.mapFunctions.applyColorToSelected(hex);
+    if (window.mapFunctions && window.mapFunctions.applyColorToSelected) {
+      window.mapFunctions.applyColorToSelected(hex);
+    }
   });
   
   // Fonctions de stockage
@@ -367,9 +394,10 @@
   }
   
   function renderCustomColors() {
+    if (!customColorsBar) return;
     const colors = getCustomColors();
     customColorsBar.innerHTML = '';
-    
+
     colors.forEach((color, index) => {
       const swatch = document.createElement('div');
       swatch.style.cssText = `
@@ -379,11 +407,13 @@
         opacity: ${color.opacity / 100};
       `;
       swatch.title = color.name;
-      
+
       swatch.addEventListener('click', function() {
-        window.mapFunctions.applyColorToSelected(color.hex);
+        if (window.mapFunctions && window.mapFunctions.applyColorToSelected) {
+          window.mapFunctions.applyColorToSelected(color.hex);
+        }
       });
-      
+
       customColorsBar.appendChild(swatch);
     });
   }
@@ -394,10 +424,12 @@
   renderCustomColors();
 
   // Positionner les curseurs initialement
-  hueCursor.style.left = '0px';
-  opacityCursor.style.left = opacityBarBg.offsetWidth + 'px';
-  colorCursor.style.left = '200px';
-  colorCursor.style.top = '0px';
+  if (hueCursor) hueCursor.style.left = '0px';
+  if (opacityCursor && opacityBarBg) opacityCursor.style.left = opacityBarBg.offsetWidth + 'px';
+  if (colorCursor) {
+    colorCursor.style.left = '200px';
+    colorCursor.style.top = '0px';
+  }
 
   console.log('[ColorPicker] Initialization complete');
   } // Fin de la fonction init()
