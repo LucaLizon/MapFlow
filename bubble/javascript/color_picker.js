@@ -128,13 +128,31 @@
     const saveBtn = document.getElementById('save-color-btn');
 
     // Vérifier que tous les éléments essentiels existent
-    if (!canvas || !colorBox || !panel || !addBtn) {
-      console.error('[ColorPicker] Missing required DOM elements:', {
-        canvas: !!canvas,
-        colorBox: !!colorBox,
-        panel: !!panel,
-        addBtn: !!addBtn
-      });
+    const requiredElements = {
+      canvas,
+      colorBox,
+      colorCursor,
+      hueBar,
+      hueCursor,
+      opacityBar,
+      opacityCursor,
+      hexInput,
+      opacityInput,
+      colorNameInput,
+      panel,
+      customColorsBar,
+      addBtn,
+      cancelBtn,
+      saveBtn
+    };
+
+    const missingElements = Object.entries(requiredElements)
+      .filter(([name, element]) => !element)
+      .map(([name]) => name);
+
+    if (missingElements.length > 0) {
+      console.error('[ColorPicker] Missing required DOM elements:', missingElements);
+      console.error('[ColorPicker] Check that all IDs exist in your HTML');
       return;
     }
 
