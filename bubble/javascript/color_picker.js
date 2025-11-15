@@ -92,12 +92,11 @@
 
 <script>
 (function() {
-  // Attendre que le DOM soit complètement chargé
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  console.log('[ColorPicker] Script loaded, waiting for DOM...');
+
+  // Dans Bubble, les éléments HTML sont injectés dynamiquement
+  // On doit attendre un court instant pour que le DOM soit prêt
+  setTimeout(init, 100);
 
   function init() {
     console.log('[ColorPicker] Initializing...');
