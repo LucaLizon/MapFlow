@@ -1,0 +1,117 @@
+<input 
+  type="range" 
+  id="country-spacing-slider" 
+  min="0" 
+  max="100" 
+  value="0"
+  class="custom-range-slider"
+  style="
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #3cf19a 0%, #3cf19a 0%, #E5E7EB 0%, #E5E7EB 100%);
+  "
+>
+
+<style>
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3cf19a;
+  cursor: pointer;
+  border: 0px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.custom-range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3cf19a;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+(function() {
+  let sliderTimeout = null;
+  
+  function getVisibleInput() {
+    return document.getElementById('country-spacing-input');
+  }
+  
+  function updateVisibleInputSilent(value) {
+    const input = getVisibleInput();
+    if (input && input.value != value) {
+      input.value = value;
+      console.log('Input updated:', value);
+    }
+  }
+  
+  function setupSlider() {
+    const slider = document.getElementById('country-spacing-slider');
+    
+    if (!slider) {
+      console.error('Slider not found');
+      return;
+    }
+    
+    slider.addEventListener('mousedown', function() {
+      if (typeof bubble_fn_set_slider_moving === 'function') {
+        bubble_fn_set_slider_moving(true);
+      }
+      console.log('Slider moving - workflow blocked');
+    });
+    
+    slider.addEventListener('input', function() {
+      const value = parseInt(this.value);
+      
+      const percentage = value;
+      this.style.background = `linear-gradient(to right, #3cf19a 0%, #3cf19a ${percentage}%, #E5E7EB ${percentage}%, #E5E7EB 100%)`;
+      
+      if (window.mapFunctions && window.mapFunctions.applyCountrySpacing) {
+        window.mapFunctions.applyCountrySpacing(value);
+      }
+      
+      updateVisibleInputSilent(value);
+      
+      console.log('Spacing:', value + '%');
+      
+      if (sliderTimeout) {
+        clearTimeout(sliderTimeout);
+      }
+      
+      sliderTimeout = setTimeout(() => {
+        if (typeof bubble_fn_set_slider_moving === 'function') {
+          bubble_fn_set_slider_moving(false);
+        }
+        console.log('Workflow unblocked');
+      }, 150);
+    });
+    
+    document.addEventListener('mouseup', function() {
+      if (sliderTimeout) {
+        clearTimeout(sliderTimeout);
+      }
+      
+      setTimeout(() => {
+        if (typeof bubble_fn_set_slider_moving === 'function') {
+          bubble_fn_set_slider_moving(false);
+        }
+        console.log('Workflow unblocked (mouseup)');
+      }, 100);
+    });
+    
+    console.log('Slider connected');
+  }
+  
+  window.updateVisibleInputSilent = updateVisibleInputSilent;
+  
+  setTimeout(setupSlider, 500);
+})();
+</script>

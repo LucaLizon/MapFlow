@@ -20,7 +20,7 @@
       stroke: #FFFFFF;
       stroke-width: 0.2;
       cursor: pointer;
-      transition: fill 0.2s ease, transform 0.2s ease;
+      transition: fill 0.2s ease, transform 0.3s ease;
     }
 
     .country:hover {
@@ -43,6 +43,12 @@
     .country.colored:hover {
       filter: brightness(0.9);
     }
+    
+    /* 🎯 STYLE POUR LES PAYS CACHÉS */
+    .country.hidden {
+      display: none;
+      pointer-events: none;
+    }
 
     .loading {
       position: absolute;
@@ -62,6 +68,16 @@
       pointer-events: all;
     }
     
+    /* 🎯 Zone liée à un pays caché : tout grisé */
+    .text-box.linked-hidden .text-box-rect {
+      stroke: #9CA3AF !important;
+    }
+    
+    .text-box.linked-hidden .text-box-text {
+      fill: #9CA3AF !important;
+      opacity: 0.6;
+    }
+    
     .group-selection-active .text-box.active .text-box-rect {
       stroke: transparent;
       stroke-width: 0;
@@ -70,6 +86,11 @@
     .group-selection-active .text-box.active .resize-handle {
       opacity: 0;
       pointer-events: none;
+    }
+    
+    /* 🎯 Cacher les indicateurs individuels en multi-sélection */
+    .group-selection-active .text-box.active .lock-indicator {
+      display: none;
     }
     
     /* ÉTAT 2 : Idle (au repos, juste le texte visible) */
@@ -88,6 +109,14 @@
       cursor: text;
       fill: #000000;
       font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .text-box {
+      transition: transform 0.3s ease;
+    }
+
+    .text-box.dragging {
+      transition: none !important;
     }
     
     .text-box:not(.active) .text-box-text {
@@ -119,6 +148,85 @@
     
     .resize-handle.sw {
       cursor: nesw-resize;
+    }
+    
+    /* 🎯 INDICATEUR DE LIAISON (cadenas + nom pays) */
+    .lock-indicator {
+      pointer-events: all;
+      cursor: pointer;
+    }
+    
+    .lock-indicator.disabled {
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    /* 🎯 PRIORITÉ 1 : Cacher le cadenas quand zone non active */
+    .text-box:not(.active) .lock-indicator {
+      display: none !important;
+    }
+
+    /* ✅ Par défaut : gris */
+    .lock-icon {
+      color: #9CA3AF;
+    }
+
+    .country-name-label {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 3px;
+      fill: #9CA3AF;
+      pointer-events: none;
+    }
+
+    /* ✅ État lié : BLEU (cadenas ET nom) */
+    .lock-indicator.linked .lock-icon {
+      color: #18A0FB !important;
+    }
+
+    .lock-indicator.linked .country-name-label {
+      fill: #18A0FB !important;
+    }
+
+    /* ✅ État prêt à lier : GRIS */
+    .lock-indicator.ready-to-link .lock-icon {
+      color: #9CA3AF !important;
+    }
+
+    .lock-indicator.ready-to-link .country-name-label {
+      fill: #9CA3AF !important;
+    }
+
+    /* ✅ État pays caché : GRIS */
+    .lock-indicator.linked-hidden .lock-icon {
+      color: #9CA3AF !important;
+    }
+
+    .lock-indicator.linked-hidden .country-name-label {
+      fill: #9CA3AF !important;
+    }
+
+    /* ✅ État désactivé : gris clair */
+    .lock-indicator.disabled .lock-icon {
+      color: #D1D5DB !important;
+    }
+
+    .lock-indicator.disabled .country-name-label {
+      fill: #D1D5DB !important;
+    }
+    
+    /* 🎯 INDICATEUR DE GROUPE sur bounding box */
+    .group-lock-indicator {
+      pointer-events: none;
+    }
+    
+    .group-lock-icon {
+      fill: #18A0FB;
+    }
+    
+    .group-country-name {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 3px;
+      fill: #18A0FB;
     }
     
     .text-input-overlay {
@@ -212,14 +320,21 @@
       let selectedCountries = new Set();
       let countryColors = new Map();
       let countryStrokes = new Map();
+      let hiddenCountries = new Set(); // 🎯 Track hidden countries
       let activeTextBoxes = new Set();
       let activeTextarea = null;
       let isResizingGlobal = false;
       let isDrawingBox = false;
       let justFinishedBoxSelection = false;
       let groupBoundingBox = null;
+      let groupLockIndicator = null; // 🎯 Group lock indicator
       let countryCentroids = new Map();
       let currentSpacing = 0;
+
+      const COUNTRY_FUSIONS = {
+        'Morocco': ['W. Sahara'],          // Maroc contrôle le Sahara Occidental
+        'Somalia': ['Somaliland']          // Somaliland fait partie de la Somalie
+      };
       
       let isPanMode = false;
       let isSelectionMode = true;
@@ -241,6 +356,55 @@
         .on('click', handleBackgroundClick);
       
       const defs = svg.append('defs');
+      
+      // 🎯 SVG pour cadenas fermé (locked) - Basé sur Lock_Closed.svg fourni
+      const lockClosedSymbol = defs.append('symbol')
+        .attr('id', 'lock-closed')
+        .attr('viewBox', '0 0 124 164');
+
+      lockClosedSymbol.append('path')
+        .attr('d', 'M0 90H124V158C124 161.314 121.314 164 118 164H6C2.68629 164 0 161.314 0 158V90Z')
+        .attr('fill', 'currentColor');
+
+      lockClosedSymbol.append('rect')
+        .attr('y', 62)
+        .attr('width', 20)
+        .attr('height', 28)
+        .attr('fill', 'currentColor');
+
+      lockClosedSymbol.append('rect')
+        .attr('x', 104)
+        .attr('y', 62)
+        .attr('width', 20)
+        .attr('height', 28)
+        .attr('fill', 'currentColor');
+
+      lockClosedSymbol.append('path')
+        .attr('d', 'M124 62C124 53.858 122.396 45.7958 119.281 38.2736C116.165 30.7514 111.598 23.9166 105.841 18.1594C100.083 12.4021 93.2486 7.83526 85.7264 4.71947C78.2042 1.60368 70.142 -3.55896e-07 62 0C53.858 3.55896e-07 45.7958 1.60368 38.2736 4.71947C30.7514 7.83526 23.9166 12.4021 18.1594 18.1594C12.4021 23.9166 7.83526 30.7514 4.71947 38.2736C1.60368 45.7958 -7.11792e-07 53.858 0 62L19.9581 62C19.9581 56.479 21.0455 51.012 23.1583 45.9113C25.2711 40.8105 28.3679 36.1758 32.2719 32.2719C36.1758 28.3679 40.8105 25.2711 45.9112 23.1583C51.012 21.0455 56.479 19.9581 62 19.9581C67.521 19.9581 72.988 21.0455 78.0888 23.1583C83.1895 25.2711 87.8242 28.3679 91.7281 32.2719C95.6321 36.1758 98.7289 40.8105 100.842 45.9112C102.954 51.012 104.042 56.479 104.042 62H124Z')
+        .attr('fill', 'currentColor');
+
+      // 🎯 SVG pour cadenas ouvert (unlocked) - Basé sur Lock_Open.svg fourni
+      const lockOpenSymbol = defs.append('symbol')
+        .attr('id', 'lock-open')
+        .attr('viewBox', '0 0 124 176');
+
+      lockOpenSymbol.append('path')
+        .attr('d', 'M0 102H124V170C124 173.314 121.314 176 118 176H6C2.68629 176 0 173.314 0 170V102Z')
+        .attr('fill', 'currentColor');
+
+      lockOpenSymbol.append('rect')
+        .attr('y', 62)
+        .attr('width', 20)
+        .attr('height', 40)
+        .attr('fill', 'currentColor');
+
+      lockOpenSymbol.append('path')
+        .attr('d', 'M104 62H124V82C124 85.3137 121.314 88 118 88H110C106.686 88 104 85.3137 104 82V62Z')
+        .attr('fill', 'currentColor');
+
+      lockOpenSymbol.append('path')
+        .attr('d', 'M124 62C124 53.858 122.396 45.7958 119.281 38.2736C116.165 30.7514 111.598 23.9166 105.841 18.1594C100.083 12.4021 93.2486 7.83526 85.7264 4.71947C78.2042 1.60368 70.142 -3.55896e-07 62 0C53.858 3.55896e-07 45.7958 1.60368 38.2736 4.71947C30.7514 7.83526 23.9166 12.4021 18.1594 18.1594C12.4021 23.9166 7.83526 30.7514 4.71947 38.2736C1.60368 45.7958 -7.11792e-07 53.858 0 62L20.026 62C20.026 56.4879 21.1117 51.0298 23.2211 45.9372C25.3305 40.8447 28.4223 36.2175 32.3199 32.3199C36.2175 28.4223 40.8447 25.3305 45.9372 23.2211C51.0298 21.1117 56.4879 20.026 62 20.026C67.5121 20.026 72.9702 21.1117 78.0628 23.2211C83.1553 25.3305 87.7825 28.4223 91.6801 32.3199C95.5777 36.2175 98.6695 40.8447 100.779 45.9372C102.888 51.0298 103.974 56.4879 103.974 62H124Z')
+        .attr('fill', 'currentColor');
       
       const pattern = defs.append('pattern')
         .attr('id', 'grid')
@@ -359,6 +523,253 @@
             country.attr('transform', `translate(${offsetX}, ${offsetY})`);
           }
         });
+        
+        // ✅ Appliquer la MÊME transformation aux zones de texte liées
+        g.selectAll('.text-box').each(function() {
+          const textBoxGroup = d3.select(this);
+          const data = textBoxGroup.datum();
+          
+          if (data.linkedCountryId) {
+            const centroid = countryCentroids.get(data.linkedCountryId);
+            
+            if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+              const dx = centroid[0] - mapCenterX;
+              const dy = centroid[1] - mapCenterY;
+              
+              // ✅ Calculer le MÊME offset de spacing que le pays
+              const spacingOffsetX = dx * (spacing / 100) * 0.5;
+              const spacingOffsetY = dy * (spacing / 100) * 0.5;
+              
+              // ✅ Position = position de base + offset utilisateur + offset spacing (identique au pays)
+              const finalX = data.baseX + (data.offsetX || 0) + spacingOffsetX;
+              const finalY = data.baseY + (data.offsetY || 0) + spacingOffsetY;
+              
+              textBoxGroup.attr('transform', 
+                `translate(${finalX}, ${finalY}) rotate(${data.rotation || 0} ${data.width/2} ${data.height/2})`
+              );
+            }
+          }
+        });
+      }
+      
+      // 🎯 NEW: Update position of a linked text box based on country spacing
+      function updateLinkedTextBoxPosition(textBoxGroup, data) {
+        const countryId = data.linkedCountryId;
+        const centroid = countryCentroids.get(countryId);
+        
+        if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+        
+        const mapCenterX = projection([0, 0])[0];
+        const mapCenterY = projection([0, 0])[1];
+        
+        const dx = centroid[0] - mapCenterX;
+        const dy = centroid[1] - mapCenterY;
+        
+        const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
+        const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
+        
+        // Apply base position + spacing offset + user offset
+        const finalX = data.baseX + spacingOffsetX + (data.offsetX || 0);
+        const finalY = data.baseY + spacingOffsetY + (data.offsetY || 0);
+        
+        textBoxGroup.attr('transform', 
+          `translate(${finalX}, ${finalY}) rotate(${data.rotation || 0} ${data.width/2} ${data.height/2})`
+        );
+      }
+      
+      // 🎯 NEW: Link a text box to a country
+      function linkTextBoxToCountry(textBoxGroup, countryId) {
+        const data = textBoxGroup.datum();
+        const countryElement = document.querySelector(`[data-country-id="${countryId}"]`);
+        const countryName = countryElement ? countryElement.getAttribute('data-country-name') : 'Unknown';
+        
+        // Get current position
+        const transform = textBoxGroup.attr('transform');
+        const match = transform.match(/translate\(([^,]+),([^)]+)\)/);
+        let currentX = 0, currentY = 0;
+        if (match) {
+          currentX = parseFloat(match[1]);
+          currentY = parseFloat(match[2]);
+        }
+        
+        // Store link data
+        data.linkedCountryId = countryId;
+        data.linkedCountryName = countryName;
+        
+        // Calculate base position (centroid) and offset
+        const centroid = countryCentroids.get(countryId);
+        if (centroid) {
+          const mapCenterX = projection([0, 0])[0];
+          const mapCenterY = projection([0, 0])[1];
+          
+          const dx = centroid[0] - mapCenterX;
+          const dy = centroid[1] - mapCenterY;
+          
+          const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
+          const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
+          
+          data.baseX = centroid[0];
+          data.baseY = centroid[1];
+          data.offsetX = currentX - (centroid[0] + spacingOffsetX);
+          data.offsetY = currentY - (centroid[1] + spacingOffsetY);
+        }
+        
+        console.log('🔗 Linked text box to:', countryName);
+        updateLockIndicator(textBoxGroup);
+        updateLinkedTextBoxVisibility(textBoxGroup);
+      }
+      
+      // 🎯 NEW: Unlink a text box from its country
+      function unlinkTextBox(textBoxGroup) {
+        const data = textBoxGroup.datum();
+        const wasLinkedToCountry = data.linkedCountryId;
+        
+        data.linkedCountryId = null;
+        data.linkedCountryName = null;
+        data.baseX = null;
+        data.baseY = null;
+        data.offsetX = null;
+        data.offsetY = null;
+        
+        console.log('🔓 Unlinked text box');
+        updateLockIndicator(textBoxGroup);
+        
+        // Auto-select the country that was linked
+        if (wasLinkedToCountry) {
+          selectedCountries.clear();
+          g.selectAll('.country.selected').classed('selected', false);
+          
+          selectedCountries.add(wasLinkedToCountry);
+          const countryElement = document.querySelector(`[data-country-id="${wasLinkedToCountry}"]`);
+          if (countryElement) {
+            countryElement.classList.add('selected');
+          }
+          updateBubbleState();
+        }
+        
+        // Remove linked-hidden class if present
+        textBoxGroup.classed('linked-hidden', false);
+      }
+      
+      // 🎯 NEW: Update visibility of linked text boxes (when country is hidden)
+      function updateLinkedTextBoxVisibility(textBoxGroup) {
+        const data = textBoxGroup.datum();
+        
+        if (data.linkedCountryId) {
+          const countryElement = document.querySelector(`[data-country-id="${data.linkedCountryId}"]`);
+          const isCountryHidden = countryElement && countryElement.classList.contains('hidden');
+          
+          textBoxGroup.classed('linked-hidden', isCountryHidden);
+          updateLockIndicator(textBoxGroup);
+        }
+      }
+      
+      // 🎯 NEW: Create lock indicator (padlock + country name)
+      function createLockIndicator(textBoxGroup) {
+        const data = textBoxGroup.datum();
+        
+        // ✅ Position : au-dessus et à droite de la handle top-left
+        const indicator = textBoxGroup.append('g')
+          .attr('class', 'lock-indicator')
+          .attr('transform', `translate(3, -5)`) // Au-dessus de la handle top-left
+          .on('mousedown', function(event) {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+          }, true)
+          .on('click', function(event) {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            
+            if (!textBoxGroup.classed('active')) {
+              activateTextBox(textBoxGroup, false, false);
+            }
+            
+            handleLockClick(textBoxGroup);
+          }, true);
+        
+        indicator.append('use')
+          .attr('class', 'lock-icon')
+          .attr('href', '#lock-open')
+          .attr('width', 3)
+          .attr('height', 4.2)  /* ✅ Ajusté pour ratio 124:176 */
+          .attr('x', 0)
+          .attr('y', -1);
+        
+        indicator.append('text')
+          .attr('class', 'country-name-label')
+          .attr('x', 4) // À droite du cadenas
+          .attr('y', 2) // Centré verticalement avec le cadenas
+          .attr('text-anchor', 'start');
+        
+        updateLockIndicator(textBoxGroup);
+      }
+      
+      // 🎯 NEW: Update lock indicator state
+      function updateLockIndicator(textBoxGroup) {
+        const data = textBoxGroup.datum();
+        const indicator = textBoxGroup.select('.lock-indicator');
+        
+        if (!indicator.node()) return;
+        
+        const isLinked = !!data.linkedCountryId;
+        const countryElement = data.linkedCountryId ? 
+          document.querySelector(`[data-country-id="${data.linkedCountryId}"]`) : null;
+        const isCountryHidden = countryElement && countryElement.classList.contains('hidden');
+        
+        const canToggle = isLinked || (selectedCountries.size === 1 && activeTextBoxes.size === 1);
+        
+        // ✅ États visuels
+        indicator.classed('disabled', !canToggle);
+        indicator.classed('linked', isLinked && !isCountryHidden);
+        indicator.classed('linked-hidden', isLinked && isCountryHidden);
+        indicator.classed('ready-to-link', !isLinked && canToggle); // Nouveau state
+        
+        const lockIcon = indicator.select('.lock-icon');
+        lockIcon.attr('href', isLinked ? '#lock-closed' : '#lock-open');
+        
+        const label = indicator.select('.country-name-label');
+        
+        // ✅ Afficher le nom du pays dans différents états
+        if (isLinked && data.linkedCountryName) {
+          // Pays lié
+          const displayName = isCountryHidden ? 
+            `${data.linkedCountryName} (hidden)` : 
+            data.linkedCountryName;
+          label.text(displayName);
+        } else if (!isLinked && canToggle) {
+          // Prêt à lier : afficher le nom du pays sélectionné en gris
+          const countryId = Array.from(selectedCountries)[0];
+          const element = document.querySelector(`[data-country-id="${countryId}"]`);
+          const countryName = element ? element.getAttribute('data-country-name') : '';
+          label.text(countryName);
+        } else {
+          label.text('');
+        }
+      }
+      
+      // 🎯 NEW: Handle lock icon click
+      function handleLockClick(textBoxGroup) {
+        const data = textBoxGroup.datum();
+        
+        // Check if action is allowed
+        const isLinked = !!data.linkedCountryId;
+        const canToggle = isLinked || (selectedCountries.size === 1 && activeTextBoxes.size === 1);
+        
+        if (!canToggle) {
+          console.log('⚠️ Cannot toggle lock: need 1 country + 1 text box selected, or text box already linked');
+          return;
+        }
+        
+        if (isLinked) {
+          // Unlink
+          unlinkTextBox(textBoxGroup);
+        } else {
+          // Link to selected country
+          const countryId = Array.from(selectedCountries)[0];
+          linkTextBoxToCountry(textBoxGroup, countryId);
+        }
       }
       
       function updateGroupBoundingBox() {
@@ -366,6 +777,10 @@
           if (groupBoundingBox) {
             groupBoundingBox.remove();
             groupBoundingBox = null;
+          }
+          if (groupLockIndicator) {
+            groupLockIndicator.remove();
+            groupLockIndicator = null;
           }
           g.classed('group-selection-active', false);
           return;
@@ -376,7 +791,12 @@
         let minX = Infinity, minY = Infinity;
         let maxX = -Infinity, maxY = -Infinity;
         
-        activeTextBoxes.forEach(textBoxNode => {
+        // 🎯 Check if all selected boxes are linked to the SAME country
+        let commonCountryId = null;
+        let commonCountryName = null;
+        let allLinkedToSame = true;
+        
+        activeTextBoxes.forEach((textBoxNode, index) => {
           const textBoxGroup = d3.select(textBoxNode);
           const data = textBoxGroup.datum();
           
@@ -393,6 +813,18 @@
           minY = Math.min(minY, y);
           maxX = Math.max(maxX, x + width);
           maxY = Math.max(maxY, y + height);
+          
+          // Check linked country
+          if (data.linkedCountryId) {
+            if (index === 0 || commonCountryId === null) {
+              commonCountryId = data.linkedCountryId;
+              commonCountryName = data.linkedCountryName;
+            } else if (data.linkedCountryId !== commonCountryId) {
+              allLinkedToSame = false;
+            }
+          } else {
+            allLinkedToSame = false;
+          }
         });
         
         const padding = 1;
@@ -411,22 +843,151 @@
             .style('stroke', '#18A0FB')
             .style('stroke-width', 0.5)
             .style('stroke-dasharray', 'none')
-            .style('pointer-events', 'none')
-            .attr('rx', 1);
+            .style('pointer-events', 'all')  // ✅ Permettre les clics
+            .style('cursor', 'default')  // ✅ Curseur main
+            .attr('rx', 1)
+            .call(d3.drag()
+              .on('start', function(event) {
+                // ✅ Utiliser d3.pointer() pour les coordonnées dans l'espace du groupe g
+                const [x, y] = d3.pointer(event, g.node());
+                
+                // ✅ Désactiver les transitions pendant le drag
+                activeTextBoxes.forEach(textBoxNode => {
+                  d3.select(textBoxNode).classed('dragging', true);
+                });
+
+                // Sauvegarder positions de départ
+                const startPositions = new Map();
+                activeTextBoxes.forEach(textBoxNode => {
+                  const group = d3.select(textBoxNode);
+                  const transform = group.attr('transform');
+                  const match = transform.match(/translate\(([^,]+),([^)]+)\)/);
+                  if (match) {
+                    startPositions.set(textBoxNode, {
+                      x: parseFloat(match[1]),
+                      y: parseFloat(match[2])
+                    });
+                  }
+                });
+                this.__dragData = { 
+                  startX: x,  // ✅ Coordonnées dans l'espace de g
+                  startY: y,
+                  startPositions: startPositions 
+                };
+              })
+              .on('drag', function(event) {
+                if (!this.__dragData) return;
+                
+                // ✅ Coordonnées actuelles dans l'espace du groupe g
+                const [x, y] = d3.pointer(event, g.node());
+                const dx = x - this.__dragData.startX;  // ✅ Delta correct
+                const dy = y - this.__dragData.startY;
+                
+                // Déplacer toutes les zones
+                activeTextBoxes.forEach(textBoxNode => {
+                  const group = d3.select(textBoxNode);
+                  const data = group.datum();
+                  const startPos = this.__dragData.startPositions.get(textBoxNode);
+                  
+                  if (startPos) {
+                    const newX = startPos.x + dx;
+                    const newY = startPos.y + dy;
+                    
+                    group.attr('transform', 
+                      `translate(${newX}, ${newY}) rotate(${data.rotation || 0} ${data.width/2} ${data.height/2})`
+                    );
+                    
+                    // Mettre à jour offset pour zones liées
+                    if (data.linkedCountryId) {
+                      const centroid = countryCentroids.get(data.linkedCountryId);
+                      if (centroid) {
+                        const mapCenterX = projection([0, 0])[0];
+                        const mapCenterY = projection([0, 0])[1];
+                        
+                        const dxCentroid = centroid[0] - mapCenterX;
+                        const dyCentroid = centroid[1] - mapCenterY;
+                        
+                        const spacingOffsetX = dxCentroid * (currentSpacing / 100) * 0.5;
+                        const spacingOffsetY = dyCentroid * (currentSpacing / 100) * 0.5;
+                        
+                        data.offsetX = newX - (centroid[0] + spacingOffsetX);
+                        data.offsetY = newY - (centroid[1] + spacingOffsetY);
+                      }
+                    }
+                  }
+                });
+                
+                // Recalculer la bounding box
+                updateGroupBoundingBox();
+              })
+              .on('end', function() {
+                // ✅ Réactiver les transitions après le drag
+                activeTextBoxes.forEach(textBoxNode => {
+                  d3.select(textBoxNode).classed('dragging', false);
+                });
+
+                delete this.__dragData;
+              })
+            )
         }
         
+        // Update position et taille
         groupBoundingBox
           .attr('x', minX)
           .attr('y', minY)
           .attr('width', boxWidth)
           .attr('height', boxHeight);
+        
+        // 🎯 Update group lock indicator
+        if (allLinkedToSame && commonCountryId) {
+          if (!groupLockIndicator) {
+            groupLockIndicator = g.append('g')
+              .attr('class', 'group-lock-indicator');
+            
+            groupLockIndicator.append('use')
+              .attr('class', 'group-lock-icon')
+              .attr('href', '#lock-closed')
+              .attr('width', 3)
+              .attr('height', 3.5);
+            
+            groupLockIndicator.append('text')
+              .attr('class', 'group-country-name')
+              .attr('x', 4)
+              .attr('y', 2);
+          }
+          
+          groupLockIndicator
+            .attr('transform', `translate(${minX + 2}, ${minY - 5})`);
+          
+          groupLockIndicator.select('.group-country-name')
+            .text(commonCountryName);
+          
+          groupLockIndicator.style('display', null);
+        } else {
+          if (groupLockIndicator) {
+            groupLockIndicator.style('display', 'none');
+          }
+        }
       }
       
       function handleBackgroundClick(event) {
         if (justFinishedBoxSelection) return;
         if (isDrawingBox) return;
         
-        if (event.target.tagName === 'svg' || event.target.tagName === 'rect') {
+        // ✅ CORRECTION Bug #3 : Inverser la logique - vérifier si on N'a PAS cliqué sur un élément interactif
+        const target = event.target;
+        const isInteractiveElement = 
+          target.classList.contains('country') ||
+          target.classList.contains('text-box-rect') ||
+          target.classList.contains('text-box-text') ||
+          target.classList.contains('resize-handle') ||
+          target.classList.contains('lock-indicator') ||
+          target.closest('.text-box') ||
+          target.closest('.lock-indicator') ||
+          target.closest('.group-bounding-box');
+        
+        if (!isInteractiveElement) {
+          // Clic sur l'arrière-plan (océan, grille, etc.)
           selectedCountries.forEach(id => {
             const element = document.querySelector(`[data-country-id="${id}"]`);
             if (element) element.classList.remove('selected');
@@ -434,6 +995,7 @@
           selectedCountries.clear();
           updateBubbleState();
           
+          // ✅ Désactiver toutes les zones de texte
           activeTextBoxes.forEach(textBox => {
             deactivateTextBox(d3.select(textBox));
           });
@@ -447,17 +1009,51 @@
         
         if (isPanMode || !isSelectionMode) return;
         
-        if (activeTextBoxes.size > 0) {
+        const countryId = d.id;
+        const countryElement = event.target;
+        const isCtrlPressed = event.ctrlKey || event.metaKey;
+        
+        // ✅ Système de détection de double-clic avec sélection immédiate
+        if (!countryElement._clickData) {
+          countryElement._clickData = { count: 0, timeout: null, lastClickTime: 0 };
+        }
+        
+        const now = Date.now();
+        const timeSinceLastClick = now - countryElement._clickData.lastClickTime;
+        
+        // ✅ Si c'est un deuxième clic rapide (< 250ms) → Double-clic
+        if (timeSinceLastClick < 250 && countryElement._clickData.count === 1) {
+          clearTimeout(countryElement._clickData.timeout);
+          countryElement._clickData.count = 0;
+          
+          // ✅ Créer la zone de texte liée (le pays est déjà sélectionné)
+          executeDoubleClick(event, d, countryId, countryElement);
+          
+        } else {
+          // ✅ Premier clic ou clic après délai → Sélection immédiate
+          countryElement._clickData.count = 1;
+          countryElement._clickData.lastClickTime = now;
+          
+          // ✅ Exécuter la sélection IMMÉDIATEMENT (pas de délai)
+          executeSingleClick(countryId, countryElement, isCtrlPressed);
+          
+          // ✅ Réinitialiser le compteur après le délai
+          countryElement._clickData.timeout = setTimeout(() => {
+            countryElement._clickData.count = 0;
+          }, 250);
+        }
+      }
+
+      // ✅ Fonction pour gérer le simple clic
+      function executeSingleClick(countryId, countryElement, isCtrlPressed) {
+        // ✅ Désélectionner zones si clic sans Ctrl
+        if (!isCtrlPressed && activeTextBoxes.size > 0) {
           activeTextBoxes.forEach(textBox => {
             deactivateTextBox(d3.select(textBox));
           });
           activeTextBoxes.clear();
-          return;
+          updateGroupBoundingBox();
         }
-        
-        const countryId = d.id;
-        const countryElement = event.target;
-        const isCtrlPressed = event.ctrlKey || event.metaKey;
         
         if (!isCtrlPressed) {
           const isAlreadySelected = selectedCountries.has(countryId);
@@ -485,6 +1081,39 @@
             countryElement.classList.add('selected');
           }
         }
+        
+        updateBubbleState();
+        
+        activeTextBoxes.forEach(textBoxNode => {
+          const textBoxGroup = d3.select(textBoxNode);
+          updateLockIndicator(textBoxGroup);
+        });
+      }
+
+      // ✅ Fonction pour gérer le double-clic
+      function executeDoubleClick(event, d, countryId, countryElement) {
+        event.preventDefault();
+        
+        const countryName = d.properties.name;
+        const centroid = countryCentroids.get(countryId);
+        
+        if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) {
+          console.warn('⚠️ Invalid centroid for country:', countryName);
+          return;
+        }
+        
+        // ✅ Sélectionner UNIQUEMENT ce pays
+        selectedCountries.forEach(id => {
+          const element = document.querySelector(`[data-country-id="${id}"]`);
+          if (element) element.classList.remove('selected');
+        });
+        selectedCountries.clear();
+        
+        selectedCountries.add(countryId);
+        countryElement.classList.add('selected');
+        
+        console.log('🔗 Creating linked text box for:', countryName);
+        createTextBox(g, centroid[0], centroid[1], countryId);
         
         updateBubbleState();
       }
@@ -672,7 +1301,8 @@
         createTextBox(g, transformedX, transformedY);
       }
       
-      function createTextBox(g, x, y) {
+      // 🎯 MODIFIED: Accept optional countryId for linking
+      function createTextBox(g, x, y, countryId = null) {
         const boxWidth = 30;
         const boxHeight = 10;
         const fontSize = 5;
@@ -737,12 +1367,24 @@
           fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           fontWeight: 'normal',
           fontStyle: 'normal',
-          textDecoration: 'none'
+          textDecoration: 'none',
+          linkedCountryId: null, // 🎯 NEW
+          linkedCountryName: null, // 🎯 NEW
+          baseX: null, // 🎯 NEW: Base position (centroid)
+          baseY: null, // 🎯 NEW
+          offsetX: null, // 🎯 NEW: User offset from centroid
+          offsetY: null // 🎯 NEW
         });
         
         addManipulationHandles(textBoxGroup);
+        createLockIndicator(textBoxGroup); // 🎯 NEW
         
         activeTextBoxes.add(textBoxGroup.node());
+        
+        // 🎯 Link to country if provided
+        if (countryId) {
+          linkTextBoxToCountry(textBoxGroup, countryId);
+        }
         
         openTextEditor(textBoxGroup, text);
         
@@ -767,6 +1409,7 @@
           openTextEditor(textBoxGroup, textElement);
         }
         
+        updateLockIndicator(textBoxGroup); // 🎯 Update lock state
         updateGroupBoundingBox();
       }
       
@@ -777,14 +1420,21 @@
           closeTextEditor();
         }
         
-        textBoxGroup.classed('active', false);
-        activeTextBoxes.delete(textBoxGroup.node());
-        
         const data = textBoxGroup.datum();
-        if ((!data.text || data.text.trim() === '') && activeTextBoxes.size === 0) {
+        
+        // ✅ CORRECTION Bug #6 : Vérifier si vide AVANT de désactiver
+        if (!data.text || data.text.trim() === '') {
+          // Supprimer IMMÉDIATEMENT sans changer les classes
           textBoxGroup.remove();
+          activeTextBoxes.delete(textBoxGroup.node());
+          console.log('🗑️ Zone de texte vide supprimée');
+          updateGroupBoundingBox();
+          return;
         }
         
+        // Si non vide, désactiver normalement
+        textBoxGroup.classed('active', false);
+        activeTextBoxes.delete(textBoxGroup.node());
         updateGroupBoundingBox();
       }
       
@@ -916,6 +1566,7 @@
         });
       }
       
+      // 🎯 MODIFIED: Update offset when dragging linked text box
       function makeTextBoxDraggable(textBoxGroup) {
         let isDragging = false;
         let startX, startY;
@@ -932,6 +1583,11 @@
             isDragging = true;
             startX = event.x;
             startY = event.y;
+            
+            // ✅ Désactiver les transitions pendant le drag
+            activeTextBoxes.forEach(textBoxNode => {
+              d3.select(textBoxNode).classed('dragging', true);
+            });
             
             startPositions.clear();
             activeTextBoxes.forEach(textBoxNode => {
@@ -961,9 +1617,29 @@
                   const startPos = startPositions.get(textBoxNode);
                   
                   if (startPos) {
+                    const newX = startPos.x + dx;
+                    const newY = startPos.y + dy;
+                    
                     group.attr('transform', 
-                      `translate(${startPos.x + dx}, ${startPos.y + dy}) rotate(${currentRotation} ${data.width/2} ${data.height/2})`
+                      `translate(${newX}, ${newY}) rotate(${currentRotation} ${data.width/2} ${data.height/2})`
                     );
+                    
+                    if (data.linkedCountryId) {
+                      const centroid = countryCentroids.get(data.linkedCountryId);
+                      if (centroid) {
+                        const mapCenterX = projection([0, 0])[0];
+                        const mapCenterY = projection([0, 0])[1];
+                        
+                        const dx = centroid[0] - mapCenterX;
+                        const dy = centroid[1] - mapCenterY;
+                        
+                        const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
+                        const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
+                        
+                        data.offsetX = newX - (centroid[0] + spacingOffsetX);
+                        data.offsetY = newY - (centroid[1] + spacingOffsetY);
+                      }
+                    }
                   }
                 });
                 
@@ -978,6 +1654,12 @@
             const onMouseUp = function() {
               isDragging = false;
               startPositions.clear();
+              
+              // ✅ Réactiver les transitions après le drag
+              activeTextBoxes.forEach(textBoxNode => {
+                d3.select(textBoxNode).classed('dragging', false);
+              });
+              
               document.removeEventListener('mousemove', onMouseMove);
               document.removeEventListener('mouseup', onMouseUp);
             };
@@ -995,6 +1677,9 @@
             event.preventDefault();
             
             isResizingGlobal = true;
+            
+            // ✅ Désactiver les transitions pendant le resize
+            textBoxGroup.classed('dragging', true);
             
             let isResizing = true;
             const startX = event.clientX;
@@ -1059,6 +1744,25 @@
                 `translate(${newX}, ${newY}) rotate(${data.rotation || 0} ${newWidth/2} ${newHeight/2})`
               );
               
+              // ✅ CORRECTION : Mettre à jour les offsets si zone liée
+              if (data.linkedCountryId) {
+                const centroid = countryCentroids.get(data.linkedCountryId);
+                if (centroid) {
+                  const mapCenterX = projection([0, 0])[0];
+                  const mapCenterY = projection([0, 0])[1];
+                  
+                  const dx = centroid[0] - mapCenterX;
+                  const dy = centroid[1] - mapCenterY;
+                  
+                  const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
+                  const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
+                  
+                  // Mettre à jour les offsets en fonction de la nouvelle position
+                  data.offsetX = newX - (centroid[0] + spacingOffsetX);
+                  data.offsetY = newY - (centroid[1] + spacingOffsetY);
+                }
+              }
+              
               textBoxGroup.select('.text-box-rect')
                 .attr('width', newWidth)
                 .attr('height', newHeight);
@@ -1069,6 +1773,10 @@
                 .attr('y', newHeight / 2);
               
               updateHandles(textBoxGroup);
+              
+              // 🎯 Update lock indicator position
+              textBoxGroup.select('.lock-indicator')
+                .attr('transform', `translate(4, -4)`); // ✅ Reste fixe en haut à gauche
               
               if (activeTextBoxes.size > 1) {
                 updateGroupBoundingBox();
@@ -1082,6 +1790,10 @@
             const mouseUpHandler = function() {
               isResizing = false;
               isResizingGlobal = false;
+              
+              // ✅ Réactiver les transitions après le resize
+              textBoxGroup.classed('dragging', false);
+              
               document.removeEventListener('mousemove', mouseMoveHandler);
               document.removeEventListener('mouseup', mouseUpHandler);
             };
@@ -1196,29 +1908,97 @@
         });
       }
       
-      // 🆕 FONCTION EXPOSÉE : Mettre à jour le slider depuis Bubble (pour les boutons Close/Medium/Far)
       window.updateSliderFromBubble = function(value) {
         const slider = document.getElementById('country-spacing-slider');
         if (slider) {
           slider.value = value;
           
-          // Mettre à jour le gradient visuel
           const percentage = value;
           slider.style.background = `linear-gradient(to right, #3cf19a 0%, #3cf19a ${percentage}%, #E5E7EB ${percentage}%, #E5E7EB 100%)`;
           
-          // Appliquer l'écartement
           applyCountrySpacing(value);
           currentSpacing = value;
           
-          // 🆕 METTRE À JOUR L'INPUT VISIBLE
-          if (typeof window.updateVisibleInput === 'function') {
-            window.updateVisibleInput(value);
-          }
-          
-          console.log('🎛️ Slider + Input mis à jour depuis Bubble:', value + '%');
+          console.log('🎛️ Slider mis à jour depuis Bubble:', value + '%');
         } else {
           console.warn('⚠️ Slider non trouvé pour mise à jour');
         }
+      };
+      
+      // 🎯 NEW: Update visibility when countries are hidden/shown
+      window.showCountriesOnMap = function(countryNames) {
+        if (!Array.isArray(countryNames)) {
+          console.warn('⚠️ showCountriesOnMap: countryNames doit être un tableau');
+          return;
+        }
+        
+        let showCount = 0;
+        
+        // Pour chaque pays demandé, on affiche aussi ses territoires fusionnés
+        const allCountriesToShow = [];
+        countryNames.forEach(countryName => {
+          allCountriesToShow.push(countryName);
+          // Si ce pays a des territoires fusionnés, on les ajoute
+          if (COUNTRY_FUSIONS[countryName]) {
+            allCountriesToShow.push(...COUNTRY_FUSIONS[countryName]);
+          }
+        });
+        
+        allCountriesToShow.forEach(countryName => {
+          const countryElement = document.querySelector(`[data-country-name="${countryName}"]`);
+          if (countryElement) {
+            countryElement.classList.remove('hidden');
+            const countryId = countryElement.getAttribute('data-country-id');
+            hiddenCountries.delete(countryId);
+            showCount++;
+          }
+        });
+        
+        // Update linked text boxes visibility
+        g.selectAll('.text-box').each(function() {
+          const textBoxGroup = d3.select(this);
+          updateLinkedTextBoxVisibility(textBoxGroup);
+        });
+        
+        console.log('👁️ Affichage de', showCount, 'pays sur la carte');
+      };
+
+      
+      window.hideCountriesOnMap = function(countryNames) {
+        if (!Array.isArray(countryNames)) {
+          console.warn('⚠️ hideCountriesOnMap: countryNames doit être un tableau');
+          return;
+        }
+        
+        let hideCount = 0;
+        
+        // Pour chaque pays demandé, on cache aussi ses territoires fusionnés
+        const allCountriesToHide = [];
+        countryNames.forEach(countryName => {
+          allCountriesToHide.push(countryName);
+          // Si ce pays a des territoires fusionnés, on les ajoute
+          if (COUNTRY_FUSIONS[countryName]) {
+            allCountriesToHide.push(...COUNTRY_FUSIONS[countryName]);
+          }
+        });
+        
+        allCountriesToHide.forEach(countryName => {
+          const countryElement = document.querySelector(`[data-country-name="${countryName}"]`);
+          if (countryElement) {
+            countryElement.classList.add('hidden');
+            const countryId = countryElement.getAttribute('data-country-id');
+            hiddenCountries.add(countryId);
+            hideCount++;
+          }
+        });
+        
+        // Update linked text boxes visibility
+        g.selectAll('.text-box').each(function() {
+          const textBoxGroup = d3.select(this);
+          updateLinkedTextBoxVisibility(textBoxGroup);
+        });
+        
+        console.log('🙈 Masquage de', hideCount, 'pays sur la carte');
       };
       
       window.mapFunctions = {
@@ -1230,6 +2010,9 @@
         getSelectedCountries: () => window.selectedCountriesData || [],
         
         applyCountrySpacing: applyCountrySpacing,
+        
+        showCountriesOnMap: window.showCountriesOnMap,
+        hideCountriesOnMap: window.hideCountriesOnMap,
         
         zoomIn: function() {
           svg.transition().duration(300).call(zoom.scaleBy, 1.2);
@@ -1456,6 +2239,162 @@
           }
           
           window.originalSizes = null;
+        },
+        
+        changeDetailLevel: function(level) {
+          console.log('🔄 Changement de niveau de détail vers:', level);
+          
+          const currentZoom = d3.zoomTransform(svg.node());
+          const savedColors = new Map(countryColors);
+          const savedStrokes = new Map(countryStrokes);
+          const savedSelection = new Set(selectedCountries);
+          const savedSpacing = currentSpacing;
+          
+          const loadingEl = svg.append('text')
+            .attr('x', width / 2)
+            .attr('y', height / 2)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 20)
+            .attr('fill', '#6B7280')
+            .text('Loading ' + level + '...');
+          
+          const url = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${level}.json`;
+          
+          console.log('📥 Téléchargement depuis:', url);
+          
+          d3.json(url)
+            .then(data => {
+              console.log('📦 Données reçues:', data);
+              
+              if (!data || !data.objects || !data.objects.countries) {
+                throw new Error('Format de données invalide');
+              }
+              
+              loadingEl.text('Parsing...');
+              
+              setTimeout(() => {
+                try {
+                  const countries = topojson.feature(data, data.objects.countries);
+                  console.log('🗺️ Features extraites:', countries.features.length);
+                  
+                  const filteredFeatures = countries.features.filter(d => {
+                    const name = d.properties.name || '';
+                    const id = d.id;
+                    
+                    if (name === 'Antarctica' || name === 'Antarctique') {
+                      console.log('❄️ Antarctique exclu:', id, name);
+                      return false;
+                    }
+                    
+                    if (level === '10m' && (id === '462' || id === 462 || name === 'Maldives')) {
+                      console.log('🏝️ Maldives exclu (résolution 10m):', id, name);
+                      return false;
+                    }
+                    
+                    if (!d.geometry || !d.geometry.coordinates) {
+                      console.log('⚠️ Géométrie invalide exclue:', id, name);
+                      return false;
+                    }
+                    
+                    try {
+                      const bounds = path.bounds(d);
+                      const width = bounds[1][0] - bounds[0][0];
+                      const height = bounds[1][1] - bounds[0][1];
+                      
+                      if (width > 5000 || height > 5000) {
+                        console.log('🚫 Géométrie trop grande exclue:', id, name, Math.round(width) + 'x' + Math.round(height) + 'px');
+                        return false;
+                      }
+                    } catch (e) {
+                      console.log('❌ Erreur lors du calcul bounds, pays exclu:', id, name);
+                      return false;
+                    }
+                    
+                    return true;
+                  });
+                  
+                  console.log('🗺️ Features après filtrage:', filteredFeatures.length);
+                  
+                  loadingEl.text('Drawing...');
+                  
+                  g.selectAll('.country').remove();
+                  
+                  countryCentroids.clear();
+                  
+                  const paths = g.selectAll('path.country')
+                    .data(filteredFeatures)
+                    .enter()
+                    .append('path')
+                    .attr('class', 'country')
+                    .attr('d', path)
+                    .attr('data-country-id', d => d.id)
+                    .attr('data-country-name', d => d.properties.name)
+                    .on('click', handleCountryClick);
+                  
+                  if (level === '10m') {
+                    paths.style('stroke-width', '0.4');
+                  }
+                  
+                  console.log('✏️ Chemins dessinés:', paths.size());
+                  
+                  paths.each(function(d) {
+                    const countryId = d.id;
+                    const centroid = path.centroid(d);
+                    
+                    if (isNaN(centroid[0]) || isNaN(centroid[1])) {
+                      console.warn('⚠️ Centroid invalide pour pays:', countryId);
+                      return;
+                    }
+                    
+                    countryCentroids.set(countryId, centroid);
+                    
+                    if (savedColors.has(countryId)) {
+                      const color = savedColors.get(countryId);
+                      applyColorToCountry(countryId, color);
+                    }
+                    
+                    if (savedStrokes.has(countryId)) {
+                      const strokeColor = savedStrokes.get(countryId);
+                      const element = document.querySelector(`[data-country-id="${countryId}"]`);
+                      if (element) {
+                        element.style.stroke = strokeColor;
+                        const inputElement = document.getElementById('stroke-width-input');
+                        const currentWidth = inputElement && inputElement.value ? inputElement.value : '0.8';
+                        element.style.strokeWidth = currentWidth;
+                        countryStrokes.set(countryId, strokeColor);
+                      }
+                    }
+                    
+                    if (savedSelection.has(countryId)) {
+                      selectedCountries.add(countryId);
+                      const element = document.querySelector(`[data-country-id="${countryId}"]`);
+                      if (element) element.classList.add('selected');
+                    }
+                  });
+                  
+                  if (savedSpacing > 0) {
+                    applyCountrySpacing(savedSpacing);
+                  }
+                  
+                  svg.call(zoom.transform, currentZoom);
+                  
+                  loadingEl.remove();
+                  
+                  console.log('✅ Niveau de détail changé:', level, '(' + countryCentroids.size, 'pays)');
+                  updateBubbleState();
+                  
+                } catch (renderError) {
+                  console.error('❌ Erreur de rendu:', renderError);
+                  loadingEl.text('Erreur de rendu: ' + renderError.message);
+                  setTimeout(() => loadingEl.remove(), 3000);
+                }
+              }, 100);
+            })
+            .catch(error => {
+              console.error('❌ Erreur lors du chargement:', error);
+              loadingEl.text('Erreur: ' + error.message);
+              setTimeout(() => loadingEl.remove(), 3000);
+            });
         }
       };
       

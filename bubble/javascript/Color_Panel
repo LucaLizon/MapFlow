@@ -1,0 +1,194 @@
+<!-- Palette 10×7 : Organisation en LIGNES (pas en colonnes) -->
+<div id="color-palette-container" style="display: flex; gap: 0; padding: 0px; flex-wrap: wrap; width: 300px;">
+  
+  <!-- ===== LIGNE 1 : Remove + Blanc → Noir ===== -->
+  
+  <div id="remove-color-btn" class="color-swatch-container" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s; background: white;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+      <line x1="3" y1="3" x2="21" y2="21"/>
+      <line x1="21" y1="3" x2="3" y2="21"/>
+    </svg>
+  </div>
+  <div class="color-swatch-container" data-color="#FFFFFF" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#F5F5F5" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F5F5F5; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#E5E7EB" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #E5E7EB; border: 1px solid rgba(0,0,0,0.1);"></div></div>  <div class="color-swatch-container" data-color="#BDBDBD" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #BDBDBD; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#9E9E9E" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #9E9E9E; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#757575" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #757575; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#616161" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #616161; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#424242" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #424242; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#212121" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #212121; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 2 : Version 1 de chaque couleur (la plus claire) ===== -->
+  
+  <div class="color-swatch-container" data-color="#FFCDD2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFCDD2; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFE0B2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFE0B2; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFF9C4" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFF9C4; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#C8E6C9" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #C8E6C9; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#B2EBF2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #B2EBF2; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#BBDEFB" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #BBDEFB; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#C5CAE9" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #C5CAE9; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#E1BEE7" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #E1BEE7; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#F8BBD0" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F8BBD0; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#D7CCC8" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #D7CCC8; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 3 : Version 2 ===== -->
+  
+  <div class="color-swatch-container" data-color="#EF9A9A" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #EF9A9A; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFCC80" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFCC80; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFF59D" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFF59D; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#A5D6A7" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #A5D6A7; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#80DEEA" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #80DEEA; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#90CAF9" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #90CAF9; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#9FA8DA" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #9FA8DA; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#CE93D8" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #CE93D8; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#F06292" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F06292; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#BCAAA4" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #BCAAA4; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 4 : Version 3 ===== -->
+  
+  <div class="color-swatch-container" data-color="#E57373" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #E57373; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFB74D" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFB74D; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFF176" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFF176; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#81C784" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #81C784; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#4DD0E1" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #4DD0E1; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#64B5F6" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #64B5F6; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#7986CB" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #7986CB; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#BA68C8" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #BA68C8; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#EC407A" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #EC407A; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#A1887F" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #A1887F; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 5 : Version 4 ===== -->
+  
+  <div class="color-swatch-container" data-color="#F44336" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F44336; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FF9800" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FF9800; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FFEB3B" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FFEB3B; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#4CAF50" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #4CAF50; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#00BCD4" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #00BCD4; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#2196F3" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #2196F3; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#3F51B5" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #3F51B5; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#9C27B0" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #9C27B0; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#E91E63" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #E91E63; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#795548" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #795548; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 6 : Version 5 ===== -->
+  
+  <div class="color-swatch-container" data-color="#D32F2F" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #D32F2F; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#F57C00" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F57C00; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#FBC02D" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #FBC02D; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#388E3C" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #388E3C; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#0097A7" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #0097A7; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#1976D2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #1976D2; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#303F9F" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #303F9F; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#7B1FA2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #7B1FA2; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#C2185B" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #C2185B; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#5D4037" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #5D4037; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+  <!-- ===== LIGNE 7 : Version 6 (la plus foncée) ===== -->
+  
+  <div class="color-swatch-container" data-color="#B71C1C" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #B71C1C; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#E65100" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #E65100; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#F57F17" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #F57F17; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#1B5E20" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #1B5E20; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#006064" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #006064; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#0D47A1" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #0D47A1; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#1A237E" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #1A237E; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#4A148C" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #4A148C; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#880E4F" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #880E4F; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  <div class="color-swatch-container" data-color="#3E2723" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; border: 2px solid transparent; box-sizing: border-box; transition: border-color 0.2s, background 0.2s;"><div class="color-swatch" style="width: 24px; height: 24px; border-radius: 4px; background: #3E2723; border: 1px solid rgba(0,0,0,0.1);"></div></div>
+  
+</div>
+
+<style>
+  .color-swatch-container:hover {
+    background: #EDF0F3 !important;
+  }
+  
+  .color-swatch-container.selected {
+    border-color: #4F46E5 !important;
+    background: #EDF0F3 !important;
+  }
+  
+  #remove-color-btn:hover {
+    background: #FEE2E2 !important;
+  }
+  
+  #remove-color-btn.selected {
+    border-color: #EF4444 !important;
+    background: #FEE2E2 !important;
+  }
+</style>
+
+<script>
+(function() {
+  console.log('[ColorPalette] Initializing 10×7 palette (horizontal layout)');
+  
+  setTimeout(function() {
+    const containers = document.querySelectorAll('#color-palette-container .color-swatch-container');
+    const removeBtn = document.getElementById('remove-color-btn');
+    
+    console.log('[ColorPalette] Found', containers.length, 'color swatches');
+    
+    // ✅ Fonction pour mettre à jour l'indicateur topbar
+    function updateTopbarIndicator(color) {
+      const indicator = document.getElementById('fill-color-indicator');
+      if (indicator) {
+        indicator.style.backgroundColor = color;
+        console.log('[ColorPalette] ✓ Topbar updated to:', color);
+      } else {
+        console.warn('[ColorPalette] ⚠ Indicator not found');
+      }
+    }
+    
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function() {
+        console.log('[ColorPalette] Remove color selected');
+        
+        document.querySelectorAll('.color-swatch-container').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.custom-color-swatch-container').forEach(c => {
+          c.classList.remove('selected');
+          c.style.borderColor = 'transparent';
+          c.style.background = 'transparent';
+        });
+        
+        this.classList.add('selected');
+        
+        // Mettre à jour l'indicateur topbar avec transparent
+        updateTopbarIndicator('transparent');
+        
+        if (window.mapFunctions && window.mapFunctions.applyColorToSelected) {
+          window.mapFunctions.applyColorToSelected('transparent');
+        }
+      });
+    }
+    
+    containers.forEach(container => {
+      if (container.id === 'remove-color-btn') return;
+      
+      container.addEventListener('click', function() {
+        const color = this.getAttribute('data-color');
+        if (!color) return;
+        
+        console.log('[ColorPalette] Color selected:', color);
+        
+        document.querySelectorAll('.color-swatch-container').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.custom-color-swatch-container').forEach(c => {
+          c.classList.remove('selected');
+          c.style.borderColor = 'transparent';
+          c.style.background = 'transparent';
+        });
+        
+        this.classList.add('selected');
+        
+        // Mettre à jour l'indicateur topbar
+        updateTopbarIndicator(color);
+        
+        if (window.mapFunctions && window.mapFunctions.applyColorToSelected) {
+          window.mapFunctions.applyColorToSelected(color);
+        }
+      });
+    });
+    
+    console.log('[ColorPalette] ✓ Initialization complete');
+  }, 300);
+})();
+</script>
