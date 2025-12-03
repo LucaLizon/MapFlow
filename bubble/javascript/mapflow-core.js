@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    /* ✅ BLOQUER NAVIGATION SWIPE - CSS NIVEAU */
+    body {
+      overscroll-behavior-x: none; /* Empêche retour/avant arrière swipe */
+      overscroll-behavior-y: auto; /* Garde scroll vertical normal */
+    }
+
+    /* 🚀 GPU ACCELERATION - Groupe racine uniquement */
+    #map-container svg > g,
+    .layers-container {
+      will-change: transform;
+    }
+    /* PAS .countries-layer → trop de modifications de fill */
+    
     #map-container {
       width: 100%;
       height: 100vh;
@@ -13,6 +26,12 @@
       bottom: 0;
       right: 0;
       overflow: hidden;
+      overscroll-behavior: none; /* Double sécurité sur container */
+      touch-action: pan-y pinch-zoom; /* ✅ CRITIQUE : Bloque pan-x natif */
+    }
+    
+    svg {
+      touch-action: pan-y pinch-zoom; /* ✅ CRITIQUE : Bloque pan-x natif sur SVG aussi */
     }
     
     .country {
@@ -20,7 +39,7 @@
       stroke: #FFFFFF;
       stroke-width: 0.2;
       cursor: pointer;
-      transition: fill 0.2s ease, transform 0.3s ease;
+      transition: none;
     }
 
     .country:hover {
@@ -40,14 +59,105 @@
       /* Pas de stroke-width forcé, laissé à JavaScript */
     }
 
-    .country.colored:hover {
-      filter: brightness(0.9);
-    }
+    
     
     /* 🎯 STYLE POUR LES PAYS CACHÉS */
     .country.hidden {
       display: none;
       pointer-events: none;
+    }
+
+    /* 🗺️ STYLES POUR LES LAYERS */
+    .layer-region {
+      fill: rgba(156, 163, 175, 0.3);
+      stroke: #FFFFFF;
+      stroke-width: 0.2;
+      cursor: pointer;
+      transition: none;
+      pointer-events: all;
+      display: none; /* ✅ Par défaut caché */
+    }
+
+    .layer-region:hover {
+      fill: #FAFAFA !important;
+      stroke: #6B7280 !important;
+      stroke-width: 0.2 !important;
+    }
+
+    .layer-region.selected {
+      stroke: #4F46E5 !important;
+      stroke-width: 0.2 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+
+    .layer-region.colored {
+      /* Pas de stroke-width forcé, laissé à JavaScript */
+    }
+
+    .layer-lake {
+      fill: #60A5FA;
+      stroke: none; /* ✅ Pas de stroke par défaut */
+      stroke-width: 0;
+      cursor: pointer;
+      transition: none;
+      pointer-events: all;
+      display: none; /* ✅ Par défaut caché */
+    }
+
+    .layer-lake:hover {
+      fill: #3B82F6;
+      stroke: #1E40AF;
+      stroke-width: 0.5; /* ✅ 0.5px au hover */
+    }
+
+    .layer-lake.selected {
+      stroke: #4F46E5 !important;
+      stroke-width: 0.2 !important; /* ✅ 0.2px très fin */
+    }
+
+    .layer-river {
+      fill: none;
+      stroke: none;
+      stroke-width: 0.2; /* ✅ 0.2px très fin */
+      cursor: pointer;
+      transition: none;
+      pointer-events: all;
+      display: none; /* ✅ Par défaut caché */
+    }
+
+    .layer-river:hover {
+      stroke: #3B82F6;
+      stroke-width: 0.5; /* ✅ 0.5px au hover */
+    }
+
+    .layer-river.selected {
+      stroke: #4F46E5 !important;
+      stroke-width: 0.2 !important; /* ✅ 0.2px très fin */
+    }
+
+    .layer-capital {
+      cursor: pointer;
+      transition: none;
+      pointer-events: all;
+      display: none; /* ✅ Par défaut caché */
+    }
+
+    .layer-capital circle {
+      fill: #EF4444;
+      stroke: #FFFFFF;
+      stroke-width: 0.2; /* ✅ Réduit de 0.3 → 0.2 */
+    }
+
+    .layer-capital:hover circle {
+      fill: #DC2626;
+      stroke-width: 0.3; /* ✅ Légèrement plus épais au hover */
+    }
+
+    .layer-capital.selected circle {
+      fill: #EF4444 !important; /* ✅ Garde le fill rouge */
+      stroke: #4F46E5 !important; /* ✅ Stroke violet */
+      stroke-width: 0.2 !important; /* ✅ Fin et précis */
     }
 
     .loading {
@@ -63,9 +173,10 @@
     .text-box.active .text-box-rect {
       fill: transparent;
       stroke: #18A0FB;
-      stroke-width: 0.5;
+      stroke-width: 1.5;
       stroke-dasharray: none;
       pointer-events: all;
+      vector-effect: non-scaling-stroke;
     }
     
     /* 🎯 Zone liée à un pays caché : tout grisé */
@@ -131,10 +242,11 @@
     .resize-handle {
       fill: white;
       stroke: #18A0FB;
-      stroke-width: 0.5;
+      stroke-width: 1.5;
       opacity: 0;
       cursor: nwse-resize;
       pointer-events: none;
+      vector-effect: non-scaling-stroke;
     }
     
     .text-box.active .resize-handle {
@@ -173,7 +285,6 @@
 
     .country-name-label {
       font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 3px;
       fill: #9CA3AF;
       pointer-events: none;
     }
@@ -225,7 +336,7 @@
     
     .group-country-name {
       font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 3px;
+      font-size: 8px;
       fill: #18A0FB;
     }
     
@@ -283,7 +394,7 @@
       background: #10B981;
       cursor: pointer;
       border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0.2s 4px rgba(0,0,0,0.1);
       transition: transform 0.1s ease;
     }
     
@@ -316,24 +427,149 @@
         selectedStroke: '#4F46E5',
         borderColor: '#FFFFFF'
       };
+
+      // 🗺️ CONFIGURATION DES LAYERS
+      const LAYER_CONFIGS = {
+        regions: {
+          name: 'Regions',
+          urls: {
+            '110m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_admin_1_states_provinces.geojson',
+            '50m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_1_states_provinces.geojson',
+            '10m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_admin_1_states_provinces.geojson'
+          },
+          className: 'layer-region',
+          type: 'polygon',
+          defaultStyle: { fill: 'rgba(156, 163, 175, 0.3)', stroke: '#FFFFFF', strokeWidth: 0.2 },
+          loaded: false,
+          data: null,
+          getParentCountry: (d) => {
+            // ✅ Essayer toutes les variantes possibles
+            return d.properties.adm0_a3 || 
+                   d.properties.ADM0_A3 || 
+                   d.properties.iso_a2 || 
+                   d.properties.ISO_A2 ||
+                   d.id ||
+                   null;
+          }
+        },
+        lakes: {
+          name: 'Lakes',
+          urls: {
+            '110m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_lakes.geojson',
+            '50m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_lakes.geojson',
+            '10m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_lakes.geojson'
+          },
+          className: 'layer-lake',
+          type: 'polygon',
+          defaultStyle: { fill: '#60A5FA', stroke: 'none', strokeWidth: 0 }, // ✅ Pas de stroke par défaut
+          loaded: false,
+          data: null,
+          getParentCountry: (d) => {
+            // Priorité 1 : Attribution manuelle
+            const name = d.properties?.name;
+            if (name && window.getManualAttribution) {
+              const manual = window.getManualAttribution(name, 'lakes');
+              if (manual) return Array.isArray(manual) ? manual[0] : manual;
+            }
+            // Priorité 2 : Propriété "admin" si disponible
+            if (d.properties.admin && countryNameToCode.has(d.properties.admin)) {
+              return countryNameToCode.get(d.properties.admin);
+            }
+            // Priorité 3 : Point-in-polygon automatique
+            return guessCountryFromGeometry(d);
+          }
+        },
+        rivers: {
+          name: 'Rivers',
+          urls: {
+            '110m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_rivers_lake_centerlines.geojson',
+            '50m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_rivers_lake_centerlines.geojson',
+            '10m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_rivers_lake_centerlines.geojson'
+          },
+          className: 'layer-river',
+          type: 'line',
+          defaultStyle: { fill: 'none', stroke: '#60A5FA', strokeWidth: 0.2 }, // ✅ 0.2px très fin
+          loaded: false,
+          data: null,
+          getParentCountry: (d) => {
+            // Priorité 1 : Attribution manuelle
+            const name = d.properties?.name;
+            if (name && window.getManualAttribution) {
+              const manual = window.getManualAttribution(name, 'rivers');
+              if (manual) return Array.isArray(manual) ? manual[0] : manual; // Si multi-pays, prendre le premier
+            }
+            // Priorité 2 : Point-in-polygon automatique
+            return guessCountryFromGeometry(d);
+          }
+        },
+        capitals: {
+          name: 'Capitals',
+          urls: {
+            '110m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_populated_places.geojson',
+            '50m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_populated_places.geojson',
+            '10m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_populated_places.geojson'
+          },
+          className: 'layer-capital',
+          type: 'point',
+          defaultStyle: { fill: '#EF4444', stroke: '#FFFFFF', strokeWidth: 0.2, radius: 1 }, // ✅ Radius 1px, stroke 0.2px
+          loaded: false,
+          data: null,
+          filter: (d) => d.properties.FEATURECLA === 'Admin-0 capital' || d.properties.ADM0CAP === 1,
+          getParentCountry: (d) => d.properties.ADM0_A3 || d.properties.adm0_a3 || d.properties.SOV_A3
+        }
+      };
       
       let selectedCountries = new Set();
       let countryColors = new Map();
       let countryStrokes = new Map();
-      let hiddenCountries = new Set(); // 🎯 Track hidden countries
+      let hiddenCountries = new Set();
+      
+      // 🗺️ MAP NOM → CODE ISO pour les layers
+      const countryNameToCode = new Map();
+      
+      // 🗺️ GROUPES SVG POUR LES LAYERS (déclarés en global)
+      let regionsGroup, lakesGroup, riversGroup, capitalsGroup;
+      
+      // 🗺️ SÉLECTION DES LAYERS
+      let selectedLayers = {
+        regions: new Set(),
+        lakes: new Set(),
+        rivers: new Set(),
+        capitals: new Set()
+      };
+      let layerColors = {
+        regions: new Map(),
+        lakes: new Map(),
+        rivers: new Map(),
+        capitals: new Map()
+      };
+      let layerStrokes = {
+        regions: new Map(),
+        lakes: new Map(),
+        rivers: new Map(),
+        capitals: new Map()
+      };
+      
+      let currentDetailLevel = '50m';
       let activeTextBoxes = new Set();
       let activeTextarea = null;
       let isResizingGlobal = false;
       let isDrawingBox = false;
       let justFinishedBoxSelection = false;
       let groupBoundingBox = null;
-      let groupLockIndicator = null; // 🎯 Group lock indicator
+      let groupLockIndicator = null;
       let countryCentroids = new Map();
       let currentSpacing = 0;
+      
+      // 🗺️ ✅ TRACKING LAYERS ACTIVÉS PAR PAYS (OPTIMISÉ)
+      const countryLayersActive = new Map(); // 'FRA' => Set(['regions', 'lakes'])
+      
+      // ✅ Cache des transformations par pays pour performance spacing
+      let countryTransformsCache = new Map();
 
       const COUNTRY_FUSIONS = {
-        'Morocco': ['W. Sahara'],          // Maroc contrôle le Sahara Occidental
-        'Somalia': ['Somaliland']          // Somaliland fait partie de la Somalie
+        'Morocco': ['W. Sahara'],
+        'Somalia': ['Somaliland']
       };
       
       let isPanMode = false;
@@ -357,7 +593,7 @@
       
       const defs = svg.append('defs');
       
-      // 🎯 SVG pour cadenas fermé (locked) - Basé sur Lock_Closed.svg fourni
+      // 🎯 SVG pour cadenas fermé (locked)
       const lockClosedSymbol = defs.append('symbol')
         .attr('id', 'lock-closed')
         .attr('viewBox', '0 0 124 164');
@@ -383,7 +619,7 @@
         .attr('d', 'M124 62C124 53.858 122.396 45.7958 119.281 38.2736C116.165 30.7514 111.598 23.9166 105.841 18.1594C100.083 12.4021 93.2486 7.83526 85.7264 4.71947C78.2042 1.60368 70.142 -3.55896e-07 62 0C53.858 3.55896e-07 45.7958 1.60368 38.2736 4.71947C30.7514 7.83526 23.9166 12.4021 18.1594 18.1594C12.4021 23.9166 7.83526 30.7514 4.71947 38.2736C1.60368 45.7958 -7.11792e-07 53.858 0 62L19.9581 62C19.9581 56.479 21.0455 51.012 23.1583 45.9113C25.2711 40.8105 28.3679 36.1758 32.2719 32.2719C36.1758 28.3679 40.8105 25.2711 45.9112 23.1583C51.012 21.0455 56.479 19.9581 62 19.9581C67.521 19.9581 72.988 21.0455 78.0888 23.1583C83.1895 25.2711 87.8242 28.3679 91.7281 32.2719C95.6321 36.1758 98.7289 40.8105 100.842 45.9112C102.954 51.012 104.042 56.479 104.042 62H124Z')
         .attr('fill', 'currentColor');
 
-      // 🎯 SVG pour cadenas ouvert (unlocked) - Basé sur Lock_Open.svg fourni
+      // 🎯 SVG pour cadenas ouvert (unlocked)
       const lockOpenSymbol = defs.append('symbol')
         .attr('id', 'lock-open')
         .attr('viewBox', '0 0 124 176');
@@ -433,19 +669,48 @@
         .attr('fill', 'url(#grid)')
         .attr('pointer-events', 'none');
       
+      // 🗺️ GROUPES POUR LES LAYERS (ordre z-index)
+      const countriesGroup = g.append('g').attr('class', 'countries-layer');
+      const layersContainer = g.append('g').attr('class', 'layers-container');
+      regionsGroup = layersContainer.append('g').attr('class', 'regions-layer');
+      lakesGroup = layersContainer.append('g').attr('class', 'lakes-layer');
+      riversGroup = layersContainer.append('g').attr('class', 'rivers-layer');
+      capitalsGroup = layersContainer.append('g').attr('class', 'capitals-layer');
+      
       const zoom = d3.zoom()
         .scaleExtent([1, 20])
         .filter(function(event) {
+          // Toujours bloquer double-click
           if (event.type === 'dblclick') return false;
+          
+          // ✅ BLOQUER COMPLÈTEMENT tous les wheel events pour D3
+          if (event.type === 'wheel') return false;
+          
+          // Toujours permettre clic droit
           if (event.button === 2 || event.buttons === 2) return true;
+          
+          // Mode sélection : bloquer drag sauf clic droit
           if (isSelectionMode && event.type !== 'wheel') {
             if (event.type === 'mousedown' && event.button === 2) return true;
             return false;
           }
+          
           return true;
         })
         .on('zoom', (event) => {
           g.attr('transform', event.transform);
+          
+          activeTextBoxes.forEach(textBoxNode => {
+            const textBoxGroup = d3.select(textBoxNode);
+            updateHandles(textBoxGroup);
+            updateLockIndicatorSize(textBoxGroup);
+          });
+          
+          if (groupBoundingBox) {
+            const currentZoom = event.transform.k;
+            groupBoundingBox.style('stroke-width', 1.5 / currentZoom);
+          }
+          
           if (activeTextarea && activeTextarea.textBoxGroup) {
             updateTextareaPosition(activeTextarea.element, activeTextarea.textBoxGroup, activeTextarea.data);
           }
@@ -468,25 +733,210 @@
           event.preventDefault();
         });
       
+      // Note : Les listeners document-level pour bloquer navigation ont été retirés
+      // car preventDefault() ne fonctionne pas de manière fiable (détecté par diagnostic).
+      // Solution : Ignorer pan horizontal 2 doigts dans le handler wheel.manual
+      
+      // ✅ GESTION MANUELLE WHEEL (optimisée performance)
+      let panDirection = null;
+      let panStartTime = 0;
+      const DIRECTION_LOCK_TIMEOUT = 100;
+      let accumulatedDeltaX = 0;
+      let accumulatedDeltaY = 0;
+      
+      svg.on('wheel.manual', function(event) {
+        // ✅ FIX DÉLAI CLIC : Filtrer micro-mouvements trackpad
+        if (!event.ctrlKey) {
+          const totalDelta = Math.abs(event.deltaX) + Math.abs(event.deltaY);
+          if (totalDelta < 10.0) {
+            return; // Clic trackpad, pas scroll
+          }
+        }
+        
+        // ✅ BLOQUER ÉVÉNEMENT (zoom natif navigateur)
+        // Note: CSS touch-action: pan-y pinch-zoom bloque déjà la navigation
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // ✅ PERFORMANCE : Cache transform une fois
+        const currentTransform = d3.zoomTransform(svg.node());
+        const scale = currentTransform.k;
+        const translateX = currentTransform.x;
+        const translateY = currentTransform.y;
+        
+        // ============================================
+        // 1️⃣ ZOOM (Ctrl OU Pinch trackpad)
+        // ============================================
+        if (event.ctrlKey) {
+          const zoomSensitivity = 0.006; // ✅ TRIPLÉ : 0.002 → 0.006 (zoom rapide)
+          const zoomFactor = Math.exp(-event.deltaY * zoomSensitivity);
+          const newScale = Math.max(1, Math.min(20, scale * zoomFactor));
+          
+          // Point sous curseur en coordonnées monde
+          const [mouseX, mouseY] = d3.pointer(event, svg.node());
+          const worldX = (mouseX - translateX) / scale;
+          const worldY = (mouseY - translateY) / scale;
+          
+          // Nouveau translate pour garder le point fixe
+          const newTranslateX = mouseX - worldX * newScale;
+          const newTranslateY = mouseY - worldY * newScale;
+          
+          const newTransform = d3.zoomIdentity
+            .translate(newTranslateX, newTranslateY)
+            .scale(newScale);
+          
+          // ✅ PERFORMANCE : Application directe sans callbacks superflus
+          g.attr('transform', newTransform.toString());
+          svg.property('__zoom', newTransform);
+          
+          // ✅ PERFORMANCE : Callbacks essentiels uniquement
+          if (activeTextBoxes.size > 0) {
+            activeTextBoxes.forEach(textBoxNode => {
+              const textBoxGroup = d3.select(textBoxNode);
+              updateHandles(textBoxGroup);
+              updateLockIndicatorSize(textBoxGroup);
+            });
+          }
+          
+          if (groupBoundingBox) {
+            groupBoundingBox.style('stroke-width', 1.5 / newScale);
+          }
+          
+          return;
+        }
+        
+        // ============================================
+        // 2️⃣ PAN HORIZONTAL (Shift+molette)
+        // ============================================
+        if (event.shiftKey) {
+          // ✅ SENSIBILITÉ ÉQUILIBRÉE (même logique)
+          const baseSensitivity = scale > 2 ? 1.5 : 1.2;
+          const sensitivity = baseSensitivity / scale;
+          const newTranslateX = translateX - event.deltaY * sensitivity;
+          
+          const newTransform = d3.zoomIdentity
+            .translate(newTranslateX, translateY)
+            .scale(scale);
+          
+          g.attr('transform', newTransform.toString());
+          svg.property('__zoom', newTransform);
+          return;
+        }
+        
+        // ============================================
+        // 3️⃣ PAN OMNIDIRECTIONNEL
+        // ============================================
+        const now = Date.now();
+        
+        // ✅ Reset direction lock après timeout OU si pas de mouvement
+        if (now - panStartTime > DIRECTION_LOCK_TIMEOUT) {
+          panDirection = null;
+          accumulatedDeltaX = 0;
+          accumulatedDeltaY = 0;
+        }
+        
+        // Accumuler les deltas
+        accumulatedDeltaX += Math.abs(event.deltaX);
+        accumulatedDeltaY += Math.abs(event.deltaY);
+        panStartTime = now;
+        
+        // ✅ SEUIL RÉDUIT : 15 → 5 pixels (plus facile de déclencher)
+        if (!panDirection && (accumulatedDeltaX + accumulatedDeltaY) > 5) {
+          const ratio = accumulatedDeltaX / (accumulatedDeltaY + 0.0001);
+          
+          // ✅ RATIOS ASSOUPLIS : 2.0/0.5 → 3.0/0.33 (plus facile d'avoir FREE)
+          if (ratio > 3.0) {
+            panDirection = 'horizontal';
+            console.log('🔒 Direction lock: HORIZONTAL');
+          } else if (ratio < 0.33) {
+            panDirection = 'vertical';
+            console.log('🔒 Direction lock: VERTICAL');
+          } else {
+            panDirection = 'free';
+            console.log('🔓 Direction: FREE (omnidirectionnel)');
+          }
+        }
+        
+        // Appliquer pan selon direction
+        let deltaX = event.deltaX;
+        let deltaY = event.deltaY;
+        
+        if (panDirection === 'horizontal') {
+          deltaY = 0;
+        } else if (panDirection === 'vertical') {
+          deltaX = 0;
+        }
+        
+        // ✅ SENSIBILITÉ ÉQUILIBRÉE pour tous niveaux de zoom
+        // Zoom 1× : 1.2 (modéré)
+        // Zoom 5× : 0.3 (rapide)
+        // Zoom 10× : 0.15 (très rapide)
+        const baseSensitivity = scale > 2 ? 1.5 : 1.2;
+        const sensitivity = baseSensitivity / scale;
+        
+        const newTranslateX = translateX - deltaX * sensitivity;
+        const newTranslateY = translateY - deltaY * sensitivity;
+        
+        const newTransform = d3.zoomIdentity
+          .translate(newTranslateX, newTranslateY)
+          .scale(scale);
+        
+        g.attr('transform', newTransform.toString());
+        svg.property('__zoom', newTransform);
+      });
+      
+      // Reset direction lock quand la souris quitte le canvas
+      svg.on('mouseleave', () => {
+        panDirection = null;
+        accumulatedDeltaX = 0;
+        accumulatedDeltaY = 0;
+        panStartTime = 0;
+      });
+      
       setupTextInsertion(svg, g);
       setupBoxSelection(svg, g);
       
-      d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
+      d3.json('https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson')
         .then(data => {
-          const countries = topojson.feature(data, data.objects.countries);
+          const countries = data;
           
-          g.selectAll('path')
-            .data(countries.features)
+          const filteredFeatures = countries.features.filter(d => {
+            const name = d.properties.NAME || d.properties.name || '';
+            
+            if (name === 'Antarctica' || name === 'Antarctique') {
+              return false;
+            }
+            
+            if (!d.geometry || !d.geometry.coordinates) {
+              console.log('⚠️ Géométrie invalide exclue:', name);
+              return false;
+            }
+            
+            return true;
+          });
+          
+          console.log('🗺️ Natural Earth chargé:', filteredFeatures.length, 'pays');
+          
+          countriesGroup.selectAll('path')
+            .data(filteredFeatures)
             .enter()
             .append('path')
             .attr('class', 'country')
             .attr('d', path)
-            .attr('data-country-id', d => d.id)
-            .attr('data-country-name', d => d.properties.name)
+            .attr('data-country-id', d => d.id || d.properties.ADM0_A3)
+            .attr('data-country-name', d => d.properties.NAME || d.properties.name)
             .on('click', handleCountryClick)
             .each(function(d) {
               const centroid = path.centroid(d);
-              countryCentroids.set(d.id, centroid);
+              const countryId = d.id || d.properties.ADM0_A3;
+              const countryName = d.properties.NAME || d.properties.name;
+              
+              countryCentroids.set(countryId, centroid);
+              
+              // ✅ Remplir la Map nom → code pour les layers
+              if (countryName && countryId) {
+                countryNameToCode.set(countryName, countryId);
+              }
             });
             
           console.log('✅ Map loaded -', countryCentroids.size, 'centroids calculated');
@@ -495,21 +945,97 @@
           console.error('Error loading map:', error);
         });
       
-      function applyCountrySpacing(spacing) {
-        currentSpacing = spacing;
+      // ✅ FONCTION HELPER : Deviner le pays d'un élément géographique
+      function guessCountryFromGeometry(d) {
+        if (!d || !d.geometry) return null;
+        
+        try {
+          let coords;
+          let isRiver = false;
+          
+          if (d.geometry.type === 'Point') {
+            coords = d.geometry.coordinates;
+          } else if (d.geometry.type === 'LineString') {
+            // ✅ Pour les rivières, prendre le PREMIER point (début) au lieu du milieu
+            coords = d.geometry.coordinates[0];
+            isRiver = true;
+          } else if (d.geometry.type === 'MultiLineString') {
+            // ✅ Pour MultiLineString : prendre le premier point de la première ligne
+            if (!d.geometry.coordinates || !d.geometry.coordinates[0] || !d.geometry.coordinates[0][0]) {
+              return null;
+            }
+            coords = d.geometry.coordinates[0][0];
+            isRiver = true;
+          } else if (d.geometry.type === 'Polygon') {
+            coords = d.geometry.coordinates[0][0];
+          } else if (d.geometry.type === 'MultiPolygon') {
+            coords = d.geometry.coordinates[0][0][0];
+          } else {
+            console.warn('⚠️ Type de géométrie non géré:', d.geometry.type);
+            return null;
+          }
+          
+          // ✅ Projeter les coordonnées géographiques en coordonnées écran
+          const projectedCoords = projection(coords);
+          
+          if (!projectedCoords || isNaN(projectedCoords[0]) || isNaN(projectedCoords[1])) {
+            return null;
+          }
+          
+          // 🎯 STRATÉGIE 1 : Vérifier si le point est DANS un pays (point-in-polygon)
+          // Cela évite les mauvaises attributions par proximité
+          const countriesData = countriesGroup.selectAll('path').data();
+          for (let countryFeature of countriesData) {
+            const countryId = countryFeature.id || countryFeature.properties.ADM0_A3;
+            if (!countryId) continue;
+            
+            // Utiliser D3 geoContains pour tester si le point géographique est dans le pays
+            if (d3.geoContains(countryFeature, coords)) {
+              return countryId;
+            }
+          }
+          
+          // 🎯 STRATÉGIE 2 : Si pas trouvé avec point-in-polygon, utiliser la proximité
+          // (pour les éléments à la frontière ou dans les eaux internationales)
+          let closestCountry = null;
+          let minDistance = Infinity;
+          
+          for (const [countryId, centroid] of countryCentroids.entries()) {
+            if (!centroid) continue;
+            
+            // ✅ Comparer coordonnées projetées avec centroid projeté
+            const dx = centroid[0] - projectedCoords[0];
+            const dy = centroid[1] - projectedCoords[1];
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestCountry = countryId;
+            }
+          }
+          
+          // ✅ Seuil adaptatif : 800px pour rivières (augmenté), 500px pour le reste
+          const threshold = isRiver ? 800 : 500;
+          return (minDistance < threshold) ? closestCountry : null;
+          
+        } catch (e) {
+          console.warn('Could not guess country:', e);
+        }
+        
+        return null;
+      }
+      
+      // ✅ OPTIMISATION : Calculer les transformations une seule fois par pays
+      function buildCountryTransformsCache(spacing) {
+        countryTransformsCache.clear();
+        
+        if (spacing === 0) return;
         
         const mapCenterX = projection([0, 0])[0];
         const mapCenterY = projection([0, 0])[1];
         
-        g.selectAll('.country').each(function(d) {
-          const country = d3.select(this);
-          const countryId = d.id;
-          const centroid = countryCentroids.get(countryId);
-          
-          if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) {
-            country.attr('transform', null);
-            return;
-          }
+        countryCentroids.forEach((centroid, countryId) => {
+          if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
           
           const dx = centroid[0] - mapCenterX;
           const dy = centroid[1] - mapCenterY;
@@ -517,14 +1043,97 @@
           const offsetX = dx * (spacing / 100) * 0.5;
           const offsetY = dy * (spacing / 100) * 0.5;
           
-          if (spacing === 0) {
-            country.attr('transform', null);
-          } else {
-            country.attr('transform', `translate(${offsetX}, ${offsetY})`);
-          }
+          countryTransformsCache.set(countryId, `translate(${offsetX}, ${offsetY})`);
         });
         
-        // ✅ Appliquer la MÊME transformation aux zones de texte liées
+        console.log(`✅ Cache transformations construit: ${countryTransformsCache.size} pays`);
+      }
+      
+      function applyCountrySpacing(spacing) {
+        currentSpacing = spacing;
+        
+        // ✅ Construire le cache une seule fois
+        buildCountryTransformsCache(spacing);
+        
+        // Appliquer aux pays
+        g.selectAll('.country').each(function(d) {
+          const country = d3.select(this);
+          const countryId = d.id || d.properties.ADM0_A3;
+          
+          const transform = spacing === 0 ? null : countryTransformsCache.get(countryId);
+          country.attr('transform', transform || null);
+        });
+        
+        // ✅ Appliquer aux régions (optimisé : utilise le cache)
+        if (regionsGroup) {
+          regionsGroup.selectAll('.layer-region').each(function(d) {
+            const region = d3.select(this);
+            
+            if (!d || !d.properties) {
+              region.attr('transform', null);
+              return;
+            }
+            
+            const parentCountryCode = d.properties.adm0_a3 || d.properties.ADM0_A3;
+            if (!parentCountryCode) {
+              region.attr('transform', null);
+              return;
+            }
+            
+            const transform = spacing === 0 ? null : countryTransformsCache.get(parentCountryCode);
+            region.attr('transform', transform || null);
+          });
+        }
+        
+        // ✅ Appliquer aux lakes (optimisé : utilise le cache)
+        if (lakesGroup) {
+          lakesGroup.selectAll('.layer-lake').each(function() {
+            const lake = d3.select(this);
+            const parentCountryCode = this.getAttribute('data-parent-country');
+            
+            if (!parentCountryCode) {
+              lake.attr('transform', null);
+              return;
+            }
+            
+            const transform = spacing === 0 ? null : countryTransformsCache.get(parentCountryCode);
+            lake.attr('transform', transform || null);
+          });
+        }
+        
+        // ✅ Appliquer aux rivers (optimisé : utilise le cache)
+        if (riversGroup) {
+          riversGroup.selectAll('.layer-river').each(function() {
+            const river = d3.select(this);
+            const parentCountryCode = this.getAttribute('data-parent-country');
+            
+            if (!parentCountryCode) {
+              river.attr('transform', null);
+              return;
+            }
+            
+            const transform = spacing === 0 ? null : countryTransformsCache.get(parentCountryCode);
+            river.attr('transform', transform || null);
+          });
+        }
+        
+        // ✅ Appliquer aux capitals (optimisé : utilise le cache)
+        if (capitalsGroup) {
+          capitalsGroup.selectAll('.layer-capital').each(function() {
+            const capital = d3.select(this);
+            const parentCountryCode = this.getAttribute('data-parent-country');
+            
+            if (!parentCountryCode) {
+              capital.attr('transform', null);
+              return;
+            }
+            
+            const transform = spacing === 0 ? null : countryTransformsCache.get(parentCountryCode);
+            capital.attr('transform', transform || null);
+          });
+        }
+        
+        // Appliquer aux zones de texte
         g.selectAll('.text-box').each(function() {
           const textBoxGroup = d3.select(this);
           const data = textBoxGroup.datum();
@@ -533,14 +1142,15 @@
             const centroid = countryCentroids.get(data.linkedCountryId);
             
             if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+              const mapCenterX = projection([0, 0])[0];
+              const mapCenterY = projection([0, 0])[1];
+              
               const dx = centroid[0] - mapCenterX;
               const dy = centroid[1] - mapCenterY;
               
-              // ✅ Calculer le MÊME offset de spacing que le pays
               const spacingOffsetX = dx * (spacing / 100) * 0.5;
               const spacingOffsetY = dy * (spacing / 100) * 0.5;
               
-              // ✅ Position = position de base + offset utilisateur + offset spacing (identique au pays)
               const finalX = data.baseX + (data.offsetX || 0) + spacingOffsetX;
               const finalY = data.baseY + (data.offsetY || 0) + spacingOffsetY;
               
@@ -552,7 +1162,6 @@
         });
       }
       
-      // 🎯 NEW: Update position of a linked text box based on country spacing
       function updateLinkedTextBoxPosition(textBoxGroup, data) {
         const countryId = data.linkedCountryId;
         const centroid = countryCentroids.get(countryId);
@@ -568,7 +1177,6 @@
         const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
         const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
         
-        // Apply base position + spacing offset + user offset
         const finalX = data.baseX + spacingOffsetX + (data.offsetX || 0);
         const finalY = data.baseY + spacingOffsetY + (data.offsetY || 0);
         
@@ -577,13 +1185,11 @@
         );
       }
       
-      // 🎯 NEW: Link a text box to a country
       function linkTextBoxToCountry(textBoxGroup, countryId) {
         const data = textBoxGroup.datum();
         const countryElement = document.querySelector(`[data-country-id="${countryId}"]`);
         const countryName = countryElement ? countryElement.getAttribute('data-country-name') : 'Unknown';
         
-        // Get current position
         const transform = textBoxGroup.attr('transform');
         const match = transform.match(/translate\(([^,]+),([^)]+)\)/);
         let currentX = 0, currentY = 0;
@@ -592,11 +1198,9 @@
           currentY = parseFloat(match[2]);
         }
         
-        // Store link data
         data.linkedCountryId = countryId;
         data.linkedCountryName = countryName;
         
-        // Calculate base position (centroid) and offset
         const centroid = countryCentroids.get(countryId);
         if (centroid) {
           const mapCenterX = projection([0, 0])[0];
@@ -619,7 +1223,6 @@
         updateLinkedTextBoxVisibility(textBoxGroup);
       }
       
-      // 🎯 NEW: Unlink a text box from its country
       function unlinkTextBox(textBoxGroup) {
         const data = textBoxGroup.datum();
         const wasLinkedToCountry = data.linkedCountryId;
@@ -634,7 +1237,6 @@
         console.log('🔓 Unlinked text box');
         updateLockIndicator(textBoxGroup);
         
-        // Auto-select the country that was linked
         if (wasLinkedToCountry) {
           selectedCountries.clear();
           g.selectAll('.country.selected').classed('selected', false);
@@ -647,11 +1249,9 @@
           updateBubbleState();
         }
         
-        // Remove linked-hidden class if present
         textBoxGroup.classed('linked-hidden', false);
       }
       
-      // 🎯 NEW: Update visibility of linked text boxes (when country is hidden)
       function updateLinkedTextBoxVisibility(textBoxGroup) {
         const data = textBoxGroup.datum();
         
@@ -664,14 +1264,16 @@
         }
       }
       
-      // 🎯 NEW: Create lock indicator (padlock + country name)
       function createLockIndicator(textBoxGroup) {
         const data = textBoxGroup.datum();
         
-        // ✅ Position : au-dessus et à droite de la handle top-left
+        const currentZoom = d3.zoomTransform(g.node()).k;
+        const offsetX = 5 / currentZoom;
+        const offsetY = -10 / currentZoom;
+
         const indicator = textBoxGroup.append('g')
           .attr('class', 'lock-indicator')
-          .attr('transform', `translate(3, -5)`) // Au-dessus de la handle top-left
+          .attr('transform', `translate(${offsetX}, ${offsetY})`)
           .on('mousedown', function(event) {
             event.stopImmediatePropagation();
             event.stopPropagation();
@@ -692,21 +1294,24 @@
         indicator.append('use')
           .attr('class', 'lock-icon')
           .attr('href', '#lock-open')
-          .attr('width', 3)
-          .attr('height', 4.2)  /* ✅ Ajusté pour ratio 124:176 */
+          .attr('width', 8)
+          .attr('height', 11.2)
           .attr('x', 0)
           .attr('y', -1);
         
+        const iconSize = 8 / currentZoom;
+        const iconHeight = iconSize * 1.4;
+
         indicator.append('text')
           .attr('class', 'country-name-label')
-          .attr('x', 4) // À droite du cadenas
-          .attr('y', 2) // Centré verticalement avec le cadenas
+          .attr('x', iconSize + (2 / currentZoom))
+          .attr('y', iconHeight / 2)
+          .attr('font-size', 8 / currentZoom)
           .attr('text-anchor', 'start');
         
         updateLockIndicator(textBoxGroup);
       }
       
-      // 🎯 NEW: Update lock indicator state
       function updateLockIndicator(textBoxGroup) {
         const data = textBoxGroup.datum();
         const indicator = textBoxGroup.select('.lock-indicator');
@@ -720,26 +1325,22 @@
         
         const canToggle = isLinked || (selectedCountries.size === 1 && activeTextBoxes.size === 1);
         
-        // ✅ États visuels
         indicator.classed('disabled', !canToggle);
         indicator.classed('linked', isLinked && !isCountryHidden);
         indicator.classed('linked-hidden', isLinked && isCountryHidden);
-        indicator.classed('ready-to-link', !isLinked && canToggle); // Nouveau state
+        indicator.classed('ready-to-link', !isLinked && canToggle);
         
         const lockIcon = indicator.select('.lock-icon');
         lockIcon.attr('href', isLinked ? '#lock-closed' : '#lock-open');
         
         const label = indicator.select('.country-name-label');
         
-        // ✅ Afficher le nom du pays dans différents états
         if (isLinked && data.linkedCountryName) {
-          // Pays lié
           const displayName = isCountryHidden ? 
             `${data.linkedCountryName} (hidden)` : 
             data.linkedCountryName;
           label.text(displayName);
         } else if (!isLinked && canToggle) {
-          // Prêt à lier : afficher le nom du pays sélectionné en gris
           const countryId = Array.from(selectedCountries)[0];
           const element = document.querySelector(`[data-country-id="${countryId}"]`);
           const countryName = element ? element.getAttribute('data-country-name') : '';
@@ -748,12 +1349,32 @@
           label.text('');
         }
       }
+
+      function updateLockIndicatorSize(textBoxGroup) {
+        const indicator = textBoxGroup.select('.lock-indicator');
+        if (!indicator.node()) return;
+        
+        const currentZoom = d3.zoomTransform(g.node()).k;
+        const iconSize = 8 / currentZoom;
+        const iconHeight = iconSize * 1.4;
+        
+        const offsetX = 5 / currentZoom;
+        const offsetY = -10 / currentZoom;
+        indicator.attr('transform', `translate(${offsetX}, ${offsetY})`);
+        
+        indicator.select('.lock-icon')
+          .attr('width', iconSize)
+          .attr('height', iconHeight);
+        
+        indicator.select('.country-name-label')
+          .attr('font-size', 8 / currentZoom)
+          .attr('x', iconSize + (2 / currentZoom))
+          .attr('y', iconHeight / 2);
+      }
       
-      // 🎯 NEW: Handle lock icon click
       function handleLockClick(textBoxGroup) {
         const data = textBoxGroup.datum();
         
-        // Check if action is allowed
         const isLinked = !!data.linkedCountryId;
         const canToggle = isLinked || (selectedCountries.size === 1 && activeTextBoxes.size === 1);
         
@@ -763,10 +1384,8 @@
         }
         
         if (isLinked) {
-          // Unlink
           unlinkTextBox(textBoxGroup);
         } else {
-          // Link to selected country
           const countryId = Array.from(selectedCountries)[0];
           linkTextBoxToCountry(textBoxGroup, countryId);
         }
@@ -791,7 +1410,6 @@
         let minX = Infinity, minY = Infinity;
         let maxX = -Infinity, maxY = -Infinity;
         
-        // 🎯 Check if all selected boxes are linked to the SAME country
         let commonCountryId = null;
         let commonCountryName = null;
         let allLinkedToSame = true;
@@ -814,7 +1432,6 @@
           maxX = Math.max(maxX, x + width);
           maxY = Math.max(maxY, y + height);
           
-          // Check linked country
           if (data.linkedCountryId) {
             if (index === 0 || commonCountryId === null) {
               commonCountryId = data.linkedCountryId;
@@ -837,26 +1454,25 @@
         const boxHeight = maxY - minY;
         
         if (!groupBoundingBox) {
+          const currentZoom = d3.zoomTransform(g.node()).k;
+          
           groupBoundingBox = g.append('rect')
             .attr('class', 'group-bounding-box')
             .style('fill', 'transparent')
             .style('stroke', '#18A0FB')
-            .style('stroke-width', 0.5)
+            .style('stroke-width', 1.5 / currentZoom)
             .style('stroke-dasharray', 'none')
-            .style('pointer-events', 'all')  // ✅ Permettre les clics
-            .style('cursor', 'default')  // ✅ Curseur main
-            .attr('rx', 1)
+            .style('pointer-events', 'all')
+            .style('cursor', 'default')
+            .attr('rx', 1 / currentZoom)
             .call(d3.drag()
               .on('start', function(event) {
-                // ✅ Utiliser d3.pointer() pour les coordonnées dans l'espace du groupe g
                 const [x, y] = d3.pointer(event, g.node());
                 
-                // ✅ Désactiver les transitions pendant le drag
                 activeTextBoxes.forEach(textBoxNode => {
                   d3.select(textBoxNode).classed('dragging', true);
                 });
 
-                // Sauvegarder positions de départ
                 const startPositions = new Map();
                 activeTextBoxes.forEach(textBoxNode => {
                   const group = d3.select(textBoxNode);
@@ -870,7 +1486,7 @@
                   }
                 });
                 this.__dragData = { 
-                  startX: x,  // ✅ Coordonnées dans l'espace de g
+                  startX: x,
                   startY: y,
                   startPositions: startPositions 
                 };
@@ -878,12 +1494,10 @@
               .on('drag', function(event) {
                 if (!this.__dragData) return;
                 
-                // ✅ Coordonnées actuelles dans l'espace du groupe g
                 const [x, y] = d3.pointer(event, g.node());
-                const dx = x - this.__dragData.startX;  // ✅ Delta correct
+                const dx = x - this.__dragData.startX;
                 const dy = y - this.__dragData.startY;
                 
-                // Déplacer toutes les zones
                 activeTextBoxes.forEach(textBoxNode => {
                   const group = d3.select(textBoxNode);
                   const data = group.datum();
@@ -897,7 +1511,6 @@
                       `translate(${newX}, ${newY}) rotate(${data.rotation || 0} ${data.width/2} ${data.height/2})`
                     );
                     
-                    // Mettre à jour offset pour zones liées
                     if (data.linkedCountryId) {
                       const centroid = countryCentroids.get(data.linkedCountryId);
                       if (centroid) {
@@ -917,11 +1530,9 @@
                   }
                 });
                 
-                // Recalculer la bounding box
                 updateGroupBoundingBox();
               })
               .on('end', function() {
-                // ✅ Réactiver les transitions après le drag
                 activeTextBoxes.forEach(textBoxNode => {
                   d3.select(textBoxNode).classed('dragging', false);
                 });
@@ -931,29 +1542,31 @@
             )
         }
         
-        // Update position et taille
         groupBoundingBox
           .attr('x', minX)
           .attr('y', minY)
           .attr('width', boxWidth)
           .attr('height', boxHeight);
         
-        // 🎯 Update group lock indicator
         if (allLinkedToSame && commonCountryId) {
           if (!groupLockIndicator) {
+            const currentZoom = d3.zoomTransform(g.node()).k;
+            const iconSize = 8 / currentZoom;
+
             groupLockIndicator = g.append('g')
               .attr('class', 'group-lock-indicator');
-            
+
             groupLockIndicator.append('use')
               .attr('class', 'group-lock-icon')
               .attr('href', '#lock-closed')
-              .attr('width', 3)
-              .attr('height', 3.5);
+              .attr('width', iconSize)
+              .attr('height', iconSize * 1.17);
             
             groupLockIndicator.append('text')
               .attr('class', 'group-country-name')
-              .attr('x', 4)
-              .attr('y', 2);
+              .attr('x', iconSize + (1 / currentZoom))
+              .attr('y', 2 / currentZoom)
+              .attr('font-size', 3 / currentZoom);
           }
           
           groupLockIndicator
@@ -974,7 +1587,6 @@
         if (justFinishedBoxSelection) return;
         if (isDrawingBox) return;
         
-        // ✅ CORRECTION Bug #3 : Inverser la logique - vérifier si on N'a PAS cliqué sur un élément interactif
         const target = event.target;
         const isInteractiveElement = 
           target.classList.contains('country') ||
@@ -982,12 +1594,15 @@
           target.classList.contains('text-box-text') ||
           target.classList.contains('resize-handle') ||
           target.classList.contains('lock-indicator') ||
+          target.classList.contains('layer-region') ||
+          target.classList.contains('layer-lake') ||
+          target.classList.contains('layer-river') ||
+          target.classList.contains('layer-capital') ||
           target.closest('.text-box') ||
           target.closest('.lock-indicator') ||
           target.closest('.group-bounding-box');
         
         if (!isInteractiveElement) {
-          // Clic sur l'arrière-plan (océan, grille, etc.)
           selectedCountries.forEach(id => {
             const element = document.querySelector(`[data-country-id="${id}"]`);
             if (element) element.classList.remove('selected');
@@ -995,12 +1610,18 @@
           selectedCountries.clear();
           updateBubbleState();
           
-          // ✅ Désactiver toutes les zones de texte
           activeTextBoxes.forEach(textBox => {
             deactivateTextBox(d3.select(textBox));
           });
           activeTextBoxes.clear();
           updateGroupBoundingBox();
+          
+          // Désélectionner tous les layers
+          ['regions', 'lakes', 'rivers', 'capitals'].forEach(type => {
+            selectedLayers[type].clear();
+            g.selectAll(`.${LAYER_CONFIGS[type].className}.selected`)
+              .classed('selected', false);
+          });
         }
       }
       
@@ -1009,11 +1630,10 @@
         
         if (isPanMode || !isSelectionMode) return;
         
-        const countryId = d.id;
+        const countryId = d.id || d.properties.ADM0_A3;
         const countryElement = event.target;
         const isCtrlPressed = event.ctrlKey || event.metaKey;
         
-        // ✅ Système de détection de double-clic avec sélection immédiate
         if (!countryElement._clickData) {
           countryElement._clickData = { count: 0, timeout: null, lastClickTime: 0 };
         }
@@ -1021,38 +1641,40 @@
         const now = Date.now();
         const timeSinceLastClick = now - countryElement._clickData.lastClickTime;
         
-        // ✅ Si c'est un deuxième clic rapide (< 250ms) → Double-clic
         if (timeSinceLastClick < 250 && countryElement._clickData.count === 1) {
           clearTimeout(countryElement._clickData.timeout);
           countryElement._clickData.count = 0;
           
-          // ✅ Créer la zone de texte liée (le pays est déjà sélectionné)
           executeDoubleClick(event, d, countryId, countryElement);
           
         } else {
-          // ✅ Premier clic ou clic après délai → Sélection immédiate
           countryElement._clickData.count = 1;
           countryElement._clickData.lastClickTime = now;
           
-          // ✅ Exécuter la sélection IMMÉDIATEMENT (pas de délai)
           executeSingleClick(countryId, countryElement, isCtrlPressed);
           
-          // ✅ Réinitialiser le compteur après le délai
           countryElement._clickData.timeout = setTimeout(() => {
             countryElement._clickData.count = 0;
           }, 250);
         }
       }
 
-      // ✅ Fonction pour gérer le simple clic
       function executeSingleClick(countryId, countryElement, isCtrlPressed) {
-        // ✅ Désélectionner zones si clic sans Ctrl
         if (!isCtrlPressed && activeTextBoxes.size > 0) {
           activeTextBoxes.forEach(textBox => {
             deactivateTextBox(d3.select(textBox));
           });
           activeTextBoxes.clear();
           updateGroupBoundingBox();
+        }
+        
+        // Désélectionner les layers si pas Ctrl
+        if (!isCtrlPressed) {
+          ['regions', 'lakes', 'rivers', 'capitals'].forEach(type => {
+            selectedLayers[type].clear();
+            g.selectAll(`.${LAYER_CONFIGS[type].className}.selected`)
+              .classed('selected', false);
+          });
         }
         
         if (!isCtrlPressed) {
@@ -1090,11 +1712,10 @@
         });
       }
 
-      // ✅ Fonction pour gérer le double-clic
       function executeDoubleClick(event, d, countryId, countryElement) {
         event.preventDefault();
         
-        const countryName = d.properties.name;
+        const countryName = d.properties.NAME || d.properties.name;
         const centroid = countryCentroids.get(countryId);
         
         if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) {
@@ -1102,7 +1723,6 @@
           return;
         }
         
-        // ✅ Sélectionner UNIQUEMENT ce pays
         selectedCountries.forEach(id => {
           const element = document.querySelector(`[data-country-id="${id}"]`);
           if (element) element.classList.remove('selected');
@@ -1301,7 +1921,6 @@
         createTextBox(g, transformedX, transformedY);
       }
       
-      // 🎯 MODIFIED: Accept optional countryId for linking
       function createTextBox(g, x, y, countryId = null) {
         const boxWidth = 30;
         const boxHeight = 10;
@@ -1315,7 +1934,7 @@
           .attr('class', 'text-box-rect')
           .attr('width', boxWidth)
           .attr('height', boxHeight)
-          .attr('rx', 1)
+          .attr('rx', 0)
           .on('click', function(event) {
             event.stopPropagation();
             
@@ -1368,20 +1987,19 @@
           fontWeight: 'normal',
           fontStyle: 'normal',
           textDecoration: 'none',
-          linkedCountryId: null, // 🎯 NEW
-          linkedCountryName: null, // 🎯 NEW
-          baseX: null, // 🎯 NEW: Base position (centroid)
-          baseY: null, // 🎯 NEW
-          offsetX: null, // 🎯 NEW: User offset from centroid
-          offsetY: null // 🎯 NEW
+          linkedCountryId: null,
+          linkedCountryName: null,
+          baseX: null,
+          baseY: null,
+          offsetX: null,
+          offsetY: null
         });
         
         addManipulationHandles(textBoxGroup);
-        createLockIndicator(textBoxGroup); // 🎯 NEW
+        createLockIndicator(textBoxGroup);
         
         activeTextBoxes.add(textBoxGroup.node());
         
-        // 🎯 Link to country if provided
         if (countryId) {
           linkTextBoxToCountry(textBoxGroup, countryId);
         }
@@ -1409,7 +2027,7 @@
           openTextEditor(textBoxGroup, textElement);
         }
         
-        updateLockIndicator(textBoxGroup); // 🎯 Update lock state
+        updateLockIndicator(textBoxGroup);
         updateGroupBoundingBox();
       }
       
@@ -1422,9 +2040,7 @@
         
         const data = textBoxGroup.datum();
         
-        // ✅ CORRECTION Bug #6 : Vérifier si vide AVANT de désactiver
         if (!data.text || data.text.trim() === '') {
-          // Supprimer IMMÉDIATEMENT sans changer les classes
           textBoxGroup.remove();
           activeTextBoxes.delete(textBoxGroup.node());
           console.log('🗑️ Zone de texte vide supprimée');
@@ -1432,7 +2048,6 @@
           return;
         }
         
-        // Si non vide, désactiver normalement
         textBoxGroup.classed('active', false);
         activeTextBoxes.delete(textBoxGroup.node());
         updateGroupBoundingBox();
@@ -1547,6 +2162,10 @@
         
         textBoxGroup.selectAll('.resize-handle').remove();
         
+        const currentZoom = d3.zoomTransform(g.node()).k;
+        const handleSize = 8 / currentZoom;
+        const handleOffset = handleSize / 2;
+        
         const handles = [
           { pos: 'nw', x: 0, y: 0 },
           { pos: 'ne', x: data.width, y: 0 },
@@ -1557,16 +2176,15 @@
         handles.forEach(h => {
           textBoxGroup.append('rect')
             .attr('class', `resize-handle ${h.pos}`)
-            .attr('x', h.x - 1.5)
-            .attr('y', h.y - 1.5)
-            .attr('width', 3)
-            .attr('height', 3)
-            .attr('rx', 0.3)
+            .attr('x', h.x - handleOffset)
+            .attr('y', h.y - handleOffset)
+            .attr('width', handleSize)
+            .attr('height', handleSize)
+            .attr('rx', 0.3 / currentZoom)
             .call(makeResizeHandle(textBoxGroup, h.pos));
         });
       }
       
-      // 🎯 MODIFIED: Update offset when dragging linked text box
       function makeTextBoxDraggable(textBoxGroup) {
         let isDragging = false;
         let startX, startY;
@@ -1584,7 +2202,6 @@
             startX = event.x;
             startY = event.y;
             
-            // ✅ Désactiver les transitions pendant le drag
             activeTextBoxes.forEach(textBoxNode => {
               d3.select(textBoxNode).classed('dragging', true);
             });
@@ -1655,7 +2272,6 @@
               isDragging = false;
               startPositions.clear();
               
-              // ✅ Réactiver les transitions après le drag
               activeTextBoxes.forEach(textBoxNode => {
                 d3.select(textBoxNode).classed('dragging', false);
               });
@@ -1678,7 +2294,6 @@
             
             isResizingGlobal = true;
             
-            // ✅ Désactiver les transitions pendant le resize
             textBoxGroup.classed('dragging', true);
             
             let isResizing = true;
@@ -1744,7 +2359,6 @@
                 `translate(${newX}, ${newY}) rotate(${data.rotation || 0} ${newWidth/2} ${newHeight/2})`
               );
               
-              // ✅ CORRECTION : Mettre à jour les offsets si zone liée
               if (data.linkedCountryId) {
                 const centroid = countryCentroids.get(data.linkedCountryId);
                 if (centroid) {
@@ -1757,7 +2371,6 @@
                   const spacingOffsetX = dx * (currentSpacing / 100) * 0.5;
                   const spacingOffsetY = dy * (currentSpacing / 100) * 0.5;
                   
-                  // Mettre à jour les offsets en fonction de la nouvelle position
                   data.offsetX = newX - (centroid[0] + spacingOffsetX);
                   data.offsetY = newY - (centroid[1] + spacingOffsetY);
                 }
@@ -1774,9 +2387,8 @@
               
               updateHandles(textBoxGroup);
               
-              // 🎯 Update lock indicator position
               textBoxGroup.select('.lock-indicator')
-                .attr('transform', `translate(4, -4)`); // ✅ Reste fixe en haut à gauche
+                .attr('transform', `translate(4, -4)`);
               
               if (activeTextBoxes.size > 1) {
                 updateGroupBoundingBox();
@@ -1791,7 +2403,6 @@
               isResizing = false;
               isResizingGlobal = false;
               
-              // ✅ Réactiver les transitions après le resize
               textBoxGroup.classed('dragging', false);
               
               document.removeEventListener('mousemove', mouseMoveHandler);
@@ -1807,6 +2418,10 @@
       function updateHandles(textBoxGroup) {
         const data = textBoxGroup.datum();
         
+        const currentZoom = d3.zoomTransform(g.node()).k;
+        const handleSize = 8 / currentZoom;
+        const handleOffset = handleSize / 2;
+        
         const handlePositions = {
           nw: { x: 0, y: 0 },
           ne: { x: data.width, y: 0 },
@@ -1817,7 +2432,12 @@
         Object.entries(handlePositions).forEach(([pos, coords]) => {
           const handle = textBoxGroup.select(`.resize-handle.${pos}`);
           if (handle.node()) {
-            handle.attr('x', coords.x - 1.5).attr('y', coords.y - 1.5);
+            handle
+              .attr('x', coords.x - handleOffset)
+              .attr('y', coords.y - handleOffset)
+              .attr('width', handleSize)
+              .attr('height', handleSize)
+              .attr('rx', 0.3 / currentZoom);
           }
         });
       }
@@ -1849,6 +2469,13 @@
         selectedCountries.forEach(countryId => {
           applyColorToCountry(countryId, color);
         });
+        
+        // Appliquer aussi aux layers sélectionnés
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          selectedLayers[layerType].forEach(layerId => {
+            applyColorToLayer(layerType, layerId, color);
+          });
+        });
       }
       
       function applyStrokeToSelected(strokeColor) {
@@ -1868,6 +2495,13 @@
             }
           }
         });
+        
+        // Appliquer aussi aux layers sélectionnés
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          selectedLayers[layerType].forEach(layerId => {
+            applyStrokeToLayer(layerType, layerId, strokeColor, currentWidth);
+          });
+        });
       }
       
       function updateStrokeWidth(width) {
@@ -1877,6 +2511,16 @@
           if (countryElement && countryElement.style.stroke && countryElement.style.stroke !== 'none') {
             countryElement.style.strokeWidth = width;
           }
+        });
+        
+        // Appliquer aussi aux layers sélectionnés
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          selectedLayers[layerType].forEach(layerId => {
+            const element = document.querySelector(`[data-layer-id="${layerId}"]`);
+            if (element && element.style.stroke && element.style.stroke !== 'none') {
+              element.style.strokeWidth = width;
+            }
+          });
         });
       }
       
@@ -1894,6 +2538,17 @@
           el.classList.remove('colored');
         });
         countryColors.clear();
+        
+        // Resetter aussi les layers
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          document.querySelectorAll(`.${LAYER_CONFIGS[layerType].className}.colored`).forEach(el => {
+            el.style.fill = '';
+            el.style.stroke = '';
+            el.classList.remove('colored');
+          });
+          layerColors[layerType].clear();
+          layerStrokes[layerType].clear();
+        });
       }
       
       function updateBubbleState() {
@@ -1925,7 +2580,6 @@
         }
       };
       
-      // 🎯 NEW: Update visibility when countries are hidden/shown
       window.showCountriesOnMap = function(countryNames) {
         if (!Array.isArray(countryNames)) {
           console.warn('⚠️ showCountriesOnMap: countryNames doit être un tableau');
@@ -1934,11 +2588,9 @@
         
         let showCount = 0;
         
-        // Pour chaque pays demandé, on affiche aussi ses territoires fusionnés
         const allCountriesToShow = [];
         countryNames.forEach(countryName => {
           allCountriesToShow.push(countryName);
-          // Si ce pays a des territoires fusionnés, on les ajoute
           if (COUNTRY_FUSIONS[countryName]) {
             allCountriesToShow.push(...COUNTRY_FUSIONS[countryName]);
           }
@@ -1954,7 +2606,6 @@
           }
         });
         
-        // Update linked text boxes visibility
         g.selectAll('.text-box').each(function() {
           const textBoxGroup = d3.select(this);
           updateLinkedTextBoxVisibility(textBoxGroup);
@@ -1972,11 +2623,9 @@
         
         let hideCount = 0;
         
-        // Pour chaque pays demandé, on cache aussi ses territoires fusionnés
         const allCountriesToHide = [];
         countryNames.forEach(countryName => {
           allCountriesToHide.push(countryName);
-          // Si ce pays a des territoires fusionnés, on les ajoute
           if (COUNTRY_FUSIONS[countryName]) {
             allCountriesToHide.push(...COUNTRY_FUSIONS[countryName]);
           }
@@ -1992,7 +2641,6 @@
           }
         });
         
-        // Update linked text boxes visibility
         g.selectAll('.text-box').each(function() {
           const textBoxGroup = d3.select(this);
           updateLinkedTextBoxVisibility(textBoxGroup);
@@ -2000,6 +2648,398 @@
         
         console.log('🙈 Masquage de', hideCount, 'pays sur la carte');
       };
+      
+      // 🗺️ ✅ FONCTIONS OPTIMISÉES POUR LES LAYERS
+      function loadLayer(layerType, detailLevel) {
+        const config = LAYER_CONFIGS[layerType];
+        if (!config) {
+          console.error('❌ Type de layer inconnu:', layerType);
+          return Promise.reject('Type inconnu');
+        }
+        
+        const url = config.urls[detailLevel || currentDetailLevel];
+        console.log(`🗺️ Chargement ${layerType} (${detailLevel || currentDetailLevel})...`);
+        
+        return d3.json(url)
+          .then(data => {
+            let features = data.features;
+            
+            if (config.filter) {
+              features = features.filter(config.filter);
+            }
+            
+            config.data = features;
+            config.loaded = true;
+            console.log(`✅ ${layerType} chargé:`, features.length, 'éléments');
+            
+            return features;
+          })
+          .catch(error => {
+            console.error(`❌ Erreur chargement ${layerType}:`, error);
+            throw error;
+          });
+      }
+      
+      // ✅ RENDER OPTIMISÉ : Créer une seule fois, cacher par défaut
+      function renderLayer(layerType) {
+        const config = LAYER_CONFIGS[layerType];
+        if (!config || !config.data) {
+          console.warn(`⚠️ Pas de données pour ${layerType}`);
+          return;
+        }
+        
+        let group;
+        if (layerType === 'regions') group = regionsGroup;
+        else if (layerType === 'lakes') group = lakesGroup;
+        else if (layerType === 'rivers') group = riversGroup;
+        else if (layerType === 'capitals') group = capitalsGroup;
+        
+        group.selectAll('*').remove();
+        
+        if (config.type === 'polygon') {
+          group.selectAll('path')
+            .data(config.data)
+            .enter()
+            .append('path')
+            .attr('class', config.className)
+            .attr('d', path)
+            .attr('data-layer-id', (d, i) => `${layerType}-${i}`)
+            .each(function(d) {
+              // ✅ FORCE l'attribution via JavaScript natif
+              const parentCountry = config.getParentCountry(d);
+              this.setAttribute('data-parent-country', parentCountry);
+            })
+            .style('fill', config.defaultStyle.fill)
+            .style('stroke', config.defaultStyle.stroke || 'none')
+            .style('stroke-width', config.defaultStyle.strokeWidth || 0)
+            .style('display', 'none') // ✅ Caché par défaut
+            .on('click', (event, d) => handleLayerClick(event, d, layerType));
+            
+        } else if (config.type === 'line') {
+          group.selectAll('path')
+            .data(config.data)
+            .enter()
+            .append('path')
+            .attr('class', config.className)
+            .attr('d', path)
+            .attr('data-layer-id', (d, i) => `${layerType}-${i}`)
+            .each(function(d) {
+              // ✅ FORCE l'attribution via JavaScript natif
+              const parentCountry = config.getParentCountry(d);
+              this.setAttribute('data-parent-country', parentCountry);
+            })
+            .style('fill', 'none')
+            .style('stroke', config.defaultStyle.stroke)
+            .style('stroke-width', config.defaultStyle.strokeWidth)
+            .style('display', 'none') // ✅ Caché par défaut
+            .on('click', (event, d) => handleLayerClick(event, d, layerType));
+            
+        } else if (config.type === 'point') {
+          group.selectAll('g')
+            .data(config.data)
+            .enter()
+            .append('g')
+            .attr('class', config.className)
+            .attr('data-layer-id', (d, i) => `${layerType}-${i}`)
+            .each(function(d) {
+              // ✅ FORCE l'attribution via JavaScript natif
+              const parentCountry = config.getParentCountry(d);
+              this.setAttribute('data-parent-country', parentCountry);
+            })
+            .style('display', 'none') // ✅ Caché par défaut
+            .attr('transform', d => {
+              const coords = projection(d.geometry.coordinates);
+              return `translate(${coords[0]},${coords[1]})`;
+            })
+            .append('circle')
+            .attr('r', config.defaultStyle.radius)
+            .style('fill', config.defaultStyle.fill)
+            .style('stroke', config.defaultStyle.stroke)
+            .style('stroke-width', config.defaultStyle.strokeWidth)
+            .on('click', (event, d) => handleLayerClick(event, d, layerType));
+        }
+        
+        console.log(`✅ ${layerType} rendu (caché par défaut)`);
+      }
+      
+      // ✅ MISE À JOUR DE LA VISIBILITÉ (PERFORMANT)
+      function updateLayerVisibility(layerType) {
+        const config = LAYER_CONFIGS[layerType];
+        if (!config || !config.loaded) return;
+        
+        // Sélectionner le bon groupe
+        let group;
+        if (layerType === 'regions') group = regionsGroup;
+        else if (layerType === 'lakes') group = lakesGroup;
+        else if (layerType === 'rivers') group = riversGroup;
+        else if (layerType === 'capitals') group = capitalsGroup;
+        
+        if (!group) {
+          console.error(`❌ Groupe introuvable pour ${layerType}`);
+          return;
+        }
+        
+        // Collecter les pays qui ont ce layer activé
+        const activeCountries = [];
+        countryLayersActive.forEach((layers, countryCode) => {
+          if (layers.has(layerType)) {
+            activeCountries.push(countryCode);
+          }
+        });
+        
+        if (activeCountries.length === 0) {
+          // Tout cacher
+          group.selectAll(`.${config.className}`)
+            .style('display', 'none');
+          console.log(`🙈 ${layerType} caché (aucun pays actif)`);
+        } else {
+          // Afficher seulement pour les pays actifs
+          group.selectAll(`.${config.className}`).each(function() {
+            const element = d3.select(this);
+            const parentCountry = this.getAttribute('data-parent-country');
+            
+            const shouldShow = activeCountries.includes(parentCountry);
+            element.style('display', shouldShow ? 'block' : 'none'); // ✅ 'block' au lieu de null
+          });
+          
+          console.log(`👁️ ${layerType} visible pour:`, activeCountries.join(', '));
+        }
+      }
+      
+      function handleLayerClick(event, d, layerType) {
+        event.stopPropagation();
+        
+        if (isPanMode || !isSelectionMode) return;
+        
+        const layerId = event.target.getAttribute('data-layer-id') || 
+                       event.target.parentElement.getAttribute('data-layer-id');
+        const layerElement = event.target;
+        const isCtrlPressed = event.ctrlKey || event.metaKey;
+        
+        // Système de détection de double-click
+        if (!layerElement._clickData) {
+          layerElement._clickData = { count: 0, timeout: null, lastClickTime: 0 };
+        }
+        
+        const now = Date.now();
+        const timeSinceLastClick = now - layerElement._clickData.lastClickTime;
+        
+        if (timeSinceLastClick < 250 && layerElement._clickData.count === 1) {
+          // Double-click détecté
+          clearTimeout(layerElement._clickData.timeout);
+          layerElement._clickData.count = 0;
+          
+          executeLayerDoubleClick(event, d, layerId, layerElement, layerType);
+          
+        } else {
+          // Simple click
+          layerElement._clickData.count = 1;
+          layerElement._clickData.lastClickTime = now;
+          
+          executeLayerSingleClick(layerId, layerElement, layerType, isCtrlPressed, d);
+          
+          layerElement._clickData.timeout = setTimeout(() => {
+            layerElement._clickData.count = 0;
+          }, 250);
+        }
+      }
+      
+      function executeLayerSingleClick(layerId, layerElement, layerType, isCtrlPressed, d) {
+        if (!isCtrlPressed) {
+          // Désactiver les text boxes
+          activeTextBoxes.forEach(textBox => {
+            deactivateTextBox(d3.select(textBox));
+          });
+          activeTextBoxes.clear();
+          updateGroupBoundingBox();
+          
+          // Désélectionner les pays
+          selectedCountries.forEach(id => {
+            const element = document.querySelector(`[data-country-id="${id}"]`);
+            if (element) element.classList.remove('selected');
+          });
+          selectedCountries.clear();
+          updateBubbleState();
+          
+          // Désélectionner les autres types de layers
+          ['regions', 'lakes', 'rivers', 'capitals'].forEach(type => {
+            if (type !== layerType) {
+              selectedLayers[type].clear();
+              g.selectAll(`.${LAYER_CONFIGS[type].className}.selected`)
+                .classed('selected', false);
+            }
+          });
+          
+          // ✅ MULTI-SEGMENTS : Pour rivers, sélectionner tous les segments avec le même nom
+          let elementsToSelect = [{ id: layerId, element: layerElement }];
+          
+          if (layerType === 'rivers' && d && d.properties && d.properties.name) {
+            const riverName = d.properties.name;
+            const allRiverSegments = g.selectAll('.layer-river');
+            
+            elementsToSelect = [];
+            allRiverSegments.each(function(riverData) {
+              if (riverData && riverData.properties && riverData.properties.name === riverName) {
+                const segmentId = this.getAttribute('data-layer-id');
+                elementsToSelect.push({ id: segmentId, element: this });
+              }
+            });
+            
+            console.log(`🌊 Sélection rivière "${riverName}": ${elementsToSelect.length} segments`);
+          }
+          
+          // Logique "toggle si seul" - vérifier si TOUS les segments sont déjà sélectionnés
+          const allSelected = elementsToSelect.every(item => selectedLayers[layerType].has(item.id));
+          const isOnlySelection = selectedLayers[layerType].size === elementsToSelect.length && allSelected;
+          
+          if (isOnlySelection) {
+            // Désélectionner tous les segments
+            elementsToSelect.forEach(item => {
+              selectedLayers[layerType].delete(item.id);
+              item.element.classList.remove('selected');
+              if (item.element.parentElement && item.element.parentElement.classList.contains(LAYER_CONFIGS[layerType].className)) {
+                item.element.parentElement.classList.remove('selected');
+              }
+            });
+          } else {
+            // Désélectionner l'ancienne sélection
+            selectedLayers[layerType].forEach(id => {
+              const element = document.querySelector(`[data-layer-id="${id}"]`);
+              if (element) {
+                element.classList.remove('selected');
+                if (element.parentElement && element.parentElement.classList.contains(LAYER_CONFIGS[layerType].className)) {
+                  element.parentElement.classList.remove('selected');
+                }
+              }
+            });
+            selectedLayers[layerType].clear();
+            
+            // Sélectionner tous les segments trouvés
+            elementsToSelect.forEach(item => {
+              selectedLayers[layerType].add(item.id);
+              item.element.classList.add('selected');
+              if (item.element.parentElement && item.element.parentElement.classList.contains(LAYER_CONFIGS[layerType].className)) {
+                item.element.parentElement.classList.add('selected');
+              }
+            });
+          }
+        } else {
+          // Mode Ctrl : toggle simple (UN SEUL segment pour l'instant)
+          if (selectedLayers[layerType].has(layerId)) {
+            selectedLayers[layerType].delete(layerId);
+            layerElement.classList.remove('selected');
+            if (layerElement.parentElement && layerElement.parentElement.classList.contains(LAYER_CONFIGS[layerType].className)) {
+              layerElement.parentElement.classList.remove('selected');
+            }
+          } else {
+            selectedLayers[layerType].add(layerId);
+            layerElement.classList.add('selected');
+            if (layerElement.parentElement && layerElement.parentElement.classList.contains(LAYER_CONFIGS[layerType].className)) {
+              layerElement.parentElement.classList.add('selected');
+            }
+          }
+        }
+        
+        console.log(`🎯 ${layerType} sélectionné:`, layerId);
+      }
+      
+      function executeLayerDoubleClick(event, d, layerId, layerElement, layerType) {
+        event.preventDefault();
+        
+        let centroid;
+        try {
+          centroid = path.centroid(d);
+        } catch (e) {
+          console.warn('⚠️ Impossible de calculer le centroid pour:', layerId);
+          return;
+        }
+        
+        if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) {
+          console.warn('⚠️ Centroid invalide pour:', layerId);
+          return;
+        }
+        
+        selectedCountries.forEach(id => {
+          const element = document.querySelector(`[data-country-id="${id}"]`);
+          if (element) element.classList.remove('selected');
+        });
+        selectedCountries.clear();
+        
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(type => {
+          selectedLayers[type].clear();
+          g.selectAll(`.${LAYER_CONFIGS[type].className}.selected`)
+            .classed('selected', false);
+        });
+        
+        selectedLayers[layerType].add(layerId);
+        layerElement.classList.add('selected');
+        
+        console.log('🔗 Creating text box for:', layerType, layerId);
+        createTextBox(g, centroid[0], centroid[1], null);
+        
+        updateBubbleState();
+      }
+      
+      function applyColorToLayer(layerType, layerId, color) {
+        const config = LAYER_CONFIGS[layerType];
+        const element = document.querySelector(`[data-layer-id="${layerId}"]`);
+        
+        if (!element) return;
+        
+        if (config.type === 'polygon' || config.type === 'point') {
+          if (element.tagName === 'circle') {
+            element.style.fill = color;
+          } else {
+            element.style.fill = color;
+          }
+        } else if (config.type === 'line') {
+          element.style.stroke = color;
+        }
+        
+        element.classList.add('colored');
+        layerColors[layerType].set(layerId, color);
+      }
+      
+      function applyStrokeToLayer(layerType, layerId, strokeColor, strokeWidth) {
+        const element = document.querySelector(`[data-layer-id="${layerId}"]`);
+        if (!element) return;
+        
+        if (strokeColor === 'transparent' || strokeColor === 'none') {
+          element.style.stroke = 'none';
+          layerStrokes[layerType].delete(layerId);
+        } else {
+          element.style.stroke = strokeColor;
+          if (strokeWidth !== undefined) {
+            element.style.strokeWidth = strokeWidth;
+          }
+          layerStrokes[layerType].set(layerId, strokeColor);
+        }
+      }
+      
+      function reloadAllVisibleLayers() {
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          const config = LAYER_CONFIGS[layerType];
+          if (config.loaded) {
+            loadLayer(layerType, currentDetailLevel)
+              .then(() => {
+                renderLayer(layerType);
+                updateLayerVisibility(layerType);
+                
+                selectedLayers[layerType].forEach(layerId => {
+                  const color = layerColors[layerType].get(layerId);
+                  const stroke = layerStrokes[layerType].get(layerId);
+                  
+                  if (color) {
+                    applyColorToLayer(layerType, layerId, color);
+                  }
+                  if (stroke) {
+                    applyStrokeToLayer(layerType, layerId, stroke);
+                  }
+                });
+              });
+          }
+        });
+      }
       
       window.mapFunctions = {
         applyColorToSelected: applyColorToSelected,
@@ -2013,6 +3053,101 @@
         
         showCountriesOnMap: window.showCountriesOnMap,
         hideCountriesOnMap: window.hideCountriesOnMap,
+        
+        // 🗺️ ✅ API LAYERS OPTIMISÉE
+        
+        // Toggle layer pour un pays spécifique (appelé depuis le menu)
+        toggleLayerForCountry: function(countryCode, layerType, isActive) {
+          console.log(`🎯 Toggle ${layerType} for ${countryCode}:`, isActive);
+          
+          // ✅ Convertir nom de pays → code ISO si nécessaire
+          let isoCode = countryCode;
+          if (countryNameToCode.has(countryCode)) {
+            isoCode = countryNameToCode.get(countryCode);
+            console.log(`🔄 Converti "${countryCode}" → "${isoCode}"`);
+          }
+          
+          // Initialiser le Set pour ce pays si nécessaire
+          if (!countryLayersActive.has(isoCode)) {
+            countryLayersActive.set(isoCode, new Set());
+          }
+          
+          const countryLayers = countryLayersActive.get(isoCode);
+          
+          if (isActive) {
+            // Ajouter ce layer pour ce pays
+            countryLayers.add(layerType);
+            
+            const config = LAYER_CONFIGS[layerType];
+            
+            // Charger le layer s'il n'est pas déjà chargé
+            if (!config.loaded) {
+              return loadLayer(layerType, currentDetailLevel)
+                .then(() => {
+                  renderLayer(layerType);
+                  updateLayerVisibility(layerType);
+                  console.log(`✅ ${layerType} chargé et affiché pour ${isoCode}`);
+                })
+                .catch(err => {
+                  console.error(`❌ Erreur activation ${layerType}:`, err);
+                });
+            } else {
+              // Layer déjà chargé, juste mettre à jour la visibilité
+              updateLayerVisibility(layerType);
+              console.log(`✅ ${layerType} affiché pour ${isoCode}`);
+            }
+          } else {
+            // Retirer ce layer pour ce pays
+            countryLayers.delete(layerType);
+            updateLayerVisibility(layerType);
+            console.log(`🙈 ${layerType} caché pour ${isoCode}`);
+          }
+          
+          return Promise.resolve();
+        },
+        
+        // Obtenir les layers actifs d'un pays
+        getCountryActiveLayers: function(countryCode) {
+          const layers = countryLayersActive.get(countryCode);
+          return layers ? Array.from(layers) : [];
+        },
+        
+        getSelectedLayers: function() {
+          return {
+            regions: Array.from(selectedLayers.regions).map(id => {
+              return {
+                id: id,
+                color: layerColors.regions.get(id) || LAYER_CONFIGS.regions.defaultStyle.fill,
+                stroke: layerStrokes.regions.get(id) || LAYER_CONFIGS.regions.defaultStyle.stroke
+              };
+            }),
+            lakes: Array.from(selectedLayers.lakes).map(id => {
+              return {
+                id: id,
+                color: layerColors.lakes.get(id) || LAYER_CONFIGS.lakes.defaultStyle.fill,
+                stroke: layerStrokes.lakes.get(id) || LAYER_CONFIGS.lakes.defaultStyle.stroke
+              };
+            }),
+            rivers: Array.from(selectedLayers.rivers).map(id => {
+              return {
+                id: id,
+                color: layerColors.rivers.get(id) || LAYER_CONFIGS.rivers.defaultStyle.stroke,
+                stroke: layerStrokes.rivers.get(id) || LAYER_CONFIGS.rivers.defaultStyle.stroke
+              };
+            }),
+            capitals: Array.from(selectedLayers.capitals).map(id => {
+              return {
+                id: id,
+                color: layerColors.capitals.get(id) || LAYER_CONFIGS.capitals.defaultStyle.fill,
+                stroke: layerStrokes.capitals.get(id) || LAYER_CONFIGS.capitals.defaultStyle.stroke
+              };
+            })
+          };
+        },
+        
+        getCurrentDetailLevel: function() {
+          return currentDetailLevel;
+        },
         
         zoomIn: function() {
           svg.transition().duration(300).call(zoom.scaleBy, 1.2);
@@ -2258,15 +3393,17 @@
             .attr('fill', '#6B7280')
             .text('Loading ' + level + '...');
           
-          const url = `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-${level}.json`;
+          const urls = {
+            '110m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_admin_0_countries.geojson',
+            '50m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson',
+            '10m': 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_10m_admin_0_countries.geojson'
+          };
           
-          console.log('📥 Téléchargement depuis:', url);
+          const url = urls[level] || urls['50m'];
           
           d3.json(url)
             .then(data => {
-              console.log('📦 Données reçues:', data);
-              
-              if (!data || !data.objects || !data.objects.countries) {
+              if (!data || !data.features) {
                 throw new Error('Format de données invalide');
               }
               
@@ -2274,83 +3411,38 @@
               
               setTimeout(() => {
                 try {
-                  const countries = topojson.feature(data, data.objects.countries);
-                  console.log('🗺️ Features extraites:', countries.features.length);
-                  
-                  const filteredFeatures = countries.features.filter(d => {
-                    const name = d.properties.name || '';
-                    const id = d.id;
-                    
-                    if (name === 'Antarctica' || name === 'Antarctique') {
-                      console.log('❄️ Antarctique exclu:', id, name);
-                      return false;
-                    }
-                    
-                    if (level === '10m' && (id === '462' || id === 462 || name === 'Maldives')) {
-                      console.log('🏝️ Maldives exclu (résolution 10m):', id, name);
-                      return false;
-                    }
-                    
-                    if (!d.geometry || !d.geometry.coordinates) {
-                      console.log('⚠️ Géométrie invalide exclue:', id, name);
-                      return false;
-                    }
-                    
-                    try {
-                      const bounds = path.bounds(d);
-                      const width = bounds[1][0] - bounds[0][0];
-                      const height = bounds[1][1] - bounds[0][1];
-                      
-                      if (width > 5000 || height > 5000) {
-                        console.log('🚫 Géométrie trop grande exclue:', id, name, Math.round(width) + 'x' + Math.round(height) + 'px');
-                        return false;
-                      }
-                    } catch (e) {
-                      console.log('❌ Erreur lors du calcul bounds, pays exclu:', id, name);
-                      return false;
-                    }
-                    
+                  const filteredFeatures = data.features.filter(d => {
+                    const name = d.properties.NAME || d.properties.name || '';
+                    if (name === 'Antarctica' || name === 'Antarctique') return false;
+                    if (!d.geometry || !d.geometry.coordinates) return false;
                     return true;
                   });
                   
-                  console.log('🗺️ Features après filtrage:', filteredFeatures.length);
-                  
                   loadingEl.text('Drawing...');
                   
-                  g.selectAll('.country').remove();
-                  
+                  countriesGroup.selectAll('.country').remove();
                   countryCentroids.clear();
                   
-                  const paths = g.selectAll('path.country')
+                  const paths = countriesGroup.selectAll('path.country')
                     .data(filteredFeatures)
                     .enter()
                     .append('path')
                     .attr('class', 'country')
                     .attr('d', path)
-                    .attr('data-country-id', d => d.id)
-                    .attr('data-country-name', d => d.properties.name)
+                    .attr('data-country-id', d => d.id || d.properties.ADM0_A3)
+                    .attr('data-country-name', d => d.properties.NAME || d.properties.name)
                     .on('click', handleCountryClick);
                   
-                  if (level === '10m') {
-                    paths.style('stroke-width', '0.4');
-                  }
-                  
-                  console.log('✏️ Chemins dessinés:', paths.size());
-                  
                   paths.each(function(d) {
-                    const countryId = d.id;
+                    const countryId = d.id || d.properties.ADM0_A3;
                     const centroid = path.centroid(d);
                     
-                    if (isNaN(centroid[0]) || isNaN(centroid[1])) {
-                      console.warn('⚠️ Centroid invalide pour pays:', countryId);
-                      return;
-                    }
+                    if (isNaN(centroid[0]) || isNaN(centroid[1])) return;
                     
                     countryCentroids.set(countryId, centroid);
                     
                     if (savedColors.has(countryId)) {
-                      const color = savedColors.get(countryId);
-                      applyColorToCountry(countryId, color);
+                      applyColorToCountry(countryId, savedColors.get(countryId));
                     }
                     
                     if (savedStrokes.has(countryId)) {
@@ -2376,16 +3468,18 @@
                     applyCountrySpacing(savedSpacing);
                   }
                   
-                  svg.call(zoom.transform, currentZoom);
+                  currentDetailLevel = level;
+                  reloadAllVisibleLayers();
                   
+                  svg.call(zoom.transform, currentZoom);
                   loadingEl.remove();
                   
-                  console.log('✅ Niveau de détail changé:', level, '(' + countryCentroids.size, 'pays)');
+                  console.log('✅ Niveau de détail changé:', level);
                   updateBubbleState();
                   
                 } catch (renderError) {
                   console.error('❌ Erreur de rendu:', renderError);
-                  loadingEl.text('Erreur de rendu: ' + renderError.message);
+                  loadingEl.text('Erreur: ' + renderError.message);
                   setTimeout(() => loadingEl.remove(), 3000);
                 }
               }, 100);
@@ -2398,7 +3492,7 @@
         }
       };
       
-      console.log('✅ MapFlow initialisé - prêt pour connexion Bubble');
+      console.log('✅ MapFlow initialisé avec gestion optimisée des layers par pays');
     }
     
     initMap();
