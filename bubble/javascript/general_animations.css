@@ -1,13 +1,11 @@
 <style>
-/* Cibler les Group Focus avec la vraie classe Bubble */
+/* ========== ANIMATIONS GROUP FOCUS ========== */
 .bubble-element.GroupFocus.bubble-r-container,
 .bubble-r-container[data-outline="true"] {
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.6, 1), 
-              cubic-bezier(0.4, 0, 0.6, 1)
- !important;
+              cubic-bezier(0.4, 0, 0.6, 1) !important;
 }
 
-/* Animation d'apparition */
 @keyframes bubbleGroupFocusSlide {
   0% {
     opacity: 0;
@@ -19,16 +17,33 @@
   }
 }
 
-/* Appliquer l'animation quand le Group Focus devient visible */
 .bubble-element.GroupFocus.bubble-r-container:not([style*="display: none"]),
 .bubble-r-container[data-outline="true"][style*="display: flex"],
 .bubble-r-container[data-outline="true"][style*="display: block"] {
   animation: bubbleGroupFocusSlide 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
-/* Plus spécifique : cibler tous les éléments avec flex column qui sont des GroupFocus */
 .bubble-element.GroupFocus.flex.column,
 .bubble-element.Group.flex.column[data-outline="true"] {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ========== ANIMATIONS CONTINENTS (max-height) ========== */
+.countries-grid-wrapper {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.countries-grid-wrapper.expanded {
+  max-height: 2000px !important;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease !important;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg) !important;
 }
 </style>

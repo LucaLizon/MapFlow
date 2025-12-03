@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapFlow - Layers Attribution</title>
+</head>
+<body>
+  <script>
+    /**
+     * ================================================
+     * MAPFLOW - LAYERS ATTRIBUTION SYSTEM
+     * ================================================
+     * 
+     * Fichier séparé pour gérer l'attribution manuelle des layers.
+     * À intégrer dans un élément HTML dédié sur Bubble.
+     * 
+     * UTILISATION:
+     * 1. Charger ce fichier AVANT le fichier map principal
+     * 2. Le map principal utilisera window.LAYERS_ATTRIBUTION
+     * 3. Mise à jour facile sans toucher au code principal
+     */
+
+    // ================================================
+    // 1. ATTRIBUTION MANUELLE (À COMPLÉTER)
+    // ================================================
+    
+    window.LAYERS_ATTRIBUTION = {
+      /**
+       * LAKES - Attribution des lacs aux pays
+       * Format: "Nom du lac": "CODE_ISO" ou ["CODE1", "CODE2"] pour multi-pays
+       */
+      lakes: {
+        // Amérique du Nord
+        "Lake Superior": "USA",
+        "Lake Michigan": "USA",
+        "Lake Huron": ["USA", "CAN"],
+        "Lake Erie": ["USA", "CAN"],
+        "Lake Ontario": ["USA", "CAN"],
+        "Great Bear Lake": "CAN",
+        "Great Slave Lake": "CAN",
+        "Lake Winnipeg": "CAN",
+        "Lake Athabasca": "CAN",
+        "Reindeer Lake": "CAN",
+        "Lake Nipigon": "CAN",
+        "Lake Manitoba": "CAN",
+        "Lake Winnipegosis": "CAN",
+        
+        // Amérique du Sud
+        "Lake Titicaca": ["PER", "BOL"],
+        "Lake Poopó": "BOL",
+        "Lake Maracaibo": "VEN",
+        
+        // Europe
+        "Lake Ladoga": "RUS",
+        "Lake Onega": "RUS",
+        "Lake Vänern": "SWE",
+        "Lake Peipus": ["EST", "RUS"],
+        "Mälaren": "SWE",
+        "Lake Geneva": ["CHE", "FRA"],
+        "Lake Constance": ["DEU", "CHE", "AUT"],
+        "Lake Balaton": "HUN",
+        "Lake Garda": "ITA",
+        
+        // Afrique
+        "Lake Victoria": ["UGA", "KEN", "TZA"],
+        "Lake Tanganyika": ["TZA", "COD", "BDI", "ZMB"],
+        "Lake Malawi": ["MWI", "MOZ", "TZA"],
+        "Lake Chad": ["TCD", "NER", "NGA", "CMR"],
+        "Lake Turkana": ["KEN", "ETH"],
+        "Lake Albert": ["UGA", "COD"],
+        "Lake Volta": "GHA",
+        "Lake Kariba": ["ZMB", "ZWE"],
+        "Lake Nasser": ["EGY", "SDN"],
+        
+        // Asie
+        "Caspian Sea": ["RUS", "KAZ", "TKM", "IRN", "AZE"],
+        "Lake Baikal": "RUS",
+        "Aral Sea": ["KAZ", "UZB"],
+        "Lake Balkhash": "KAZ",
+        "Issyk-Kul": "KGZ",
+        "Lake Urmia": "IRN",
+        "Lake Van": "TUR",
+        "Tonle Sap": "KHM",
+        "Poyang Lake": "CHN",
+        "Dongting Lake": "CHN",
+        "Tai Lake": "CHN",
+        
+        // Océanie
+        "Lake Eyre": "AUS",
+        "Lake Torrens": "AUS",
+        "Lake Gairdner": "AUS",
+        "Lake Frome": "AUS",
+        "Lake Taupo": "NZL"
+      },
+      
+      /**
+       * RIVERS - Attribution des rivières aux pays
+       * Format: "Nom de la rivière": "CODE_ISO" ou ["CODE1", "CODE2"] pour transfrontalières
+       */
+      rivers: {
+        // Amérique du Nord
+        "Mississippi": "USA",
+        "Missouri": "USA",
+        "Rio Grande": ["USA", "MEX"],
+        "Yukon": ["CAN", "USA"],
+        "Columbia": ["CAN", "USA"],
+        "Colorado": ["USA", "MEX"],
+        "Arkansas": "USA",
+        "Ohio": "USA",
+        "Snake": "USA",
+        "Red": "USA",
+        "Mackenzie": "CAN",
+        "Nelson": "CAN",
+        "Churchill": "CAN",
+        "Fraser": "CAN",
+        "St. Lawrence": "CAN",
+        "Saskatchewan": "CAN",
+        "Alabama": "USA",
+        
+        // Amérique du Sud
+        "Amazon": ["BRA", "PER", "COL"],
+        "Paraná": ["BRA", "ARG", "PRY"],
+        "Madeira": "BRA",
+        "Purus": "BRA",
+        "São Francisco": "BRA",
+        "Tocantins": "BRA",
+        "Orinoco": ["VEN", "COL"],
+        "Paraguay": ["PRY", "ARG", "BRA"],
+        "Uruguay": ["URY", "ARG", "BRA"],
+        
+        // Europe
+        "Volga": "RUS",
+        "Danube": ["DEU", "AUT", "SVK", "HUN", "HRV", "SRB", "BGR", "ROU", "UKR"],
+        "Dnieper": ["RUS", "BLR", "UKR"],
+        "Don": "RUS",
+        "Pechora": "RUS",
+        "Rhine": ["CHE", "DEU", "FRA", "NLD"],
+        "Elbe": ["CZE", "DEU"],
+        "Oder": ["CZE", "POL", "DEU"],
+        "Vistula": "POL",
+        "Seine": "FRA",
+        "Loire": "FRA",
+        "Rhône": ["CHE", "FRA"],
+        "Po": "ITA",
+        "Ebro": "ESP",
+        "Tagus": ["ESP", "PRT"],
+        "Douro": ["ESP", "PRT"],
+        "Guadalquivir": "ESP",
+        "Thames": "GBR",
+        "Kama": "RUS",
+        
+        // Afrique
+        "Nile": ["EGY", "SDN", "SSD", "UGA"],
+        "Congo": ["COD", "AGO", "CAF", "COG"],
+        "Niger": ["NGA", "NER", "MLI", "GIN"],
+        "Zambezi": ["ZMB", "ZWE", "MOZ"],
+        "Orange": ["ZAF", "NAM", "BWA"],
+        "Limpopo": ["ZAF", "ZWE", "MOZ"],
+        "Senegal": ["SEN", "MLI", "MRT"],
+        "Volta": "GHA",
+        "Okavango": ["AGO", "NAM", "BWA"],
+        
+        // Asie
+        "Yangtze": "CHN",
+        "Yellow": "CHN",
+        "Mekong": ["CHN", "MMR", "LAO", "THA", "KHM", "VNM"],
+        "Lena": "RUS",
+        "Yenisei": "RUS",
+        "Ob": "RUS",
+        "Irtysh": ["CHN", "KAZ", "RUS"],
+        "Amur": ["RUS", "CHN"],
+        "Ganges": ["IND", "BGD"],
+        "Brahmaputra": ["CHN", "IND", "BGD"],
+        "Indus": ["PAK", "IND", "CHN"],
+        "Tigris": ["TUR", "SYR", "IRQ"],
+        "Euphrates": ["TUR", "SYR", "IRQ"],
+        "Al Furat": ["TUR", "SYR", "IRQ"], // Euphrates en arabe
+        "Abay": "ETH", // Blue Nile
+        "Syr Darya": ["KGZ", "TJK", "UZB", "KAZ"],
+        "Amu Darya": ["TJK", "AFG", "TKM", "UZB"],
+        
+        // Océanie
+        "Murray": "AUS",
+        "Darling": "AUS",
+        "Murrumbidgee": "AUS"
+      },
+      
+      /**
+       * REGIONS - Attribution des régions/provinces
+       * (Normalement ont déjà adm0_a3, mais on garde pour cohérence)
+       */
+      regions: {
+        // USA
+        "California": "USA",
+        "Texas": "USA",
+        "Florida": "USA",
+        "New York": "USA",
+        // ... Les regions ont déjà l'attribution native, pas besoin de tout lister
+      },
+      
+      /**
+       * CAPITALS - Attribution des capitales
+       * (Normalement ont déjà ADM0_A3, mais on garde pour cohérence)
+       */
+      capitals: {
+        "Paris": "FRA",
+        "London": "GBR",
+        "Berlin": "DEU",
+        "Washington": "USA",
+        "Tokyo": "JPN",
+        // ... Les capitals ont déjà l'attribution native, pas besoin de tout lister
+      }
+    };
+
+    // ================================================
+    // 2. FONCTION D'EXTRACTION (POUR GÉNÉRATION)
+    // ================================================
+    
+    /**
+     * Script à exécuter dans la console pour extraire l'attribution actuelle
+     * et générer un fichier JSON à compléter manuellement.
+     * 
+     * UTILISATION:
+     * 1. Charger toutes les layers sur la carte
+     * 2. Exécuter window.generateAttribution() dans la console
+     * 3. Copier le JSON résultant
+     * 4. Compléter/corriger manuellement
+     */
+    window.generateAttribution = function() {
+      const attribution = {
+        lakes: {},
+        rivers: {},
+        regions: {},
+        capitals: {}
+      };
+      
+      // Extraire lakes
+      document.querySelectorAll('.layer-lake').forEach(lake => {
+        try {
+          const data = d3.select(lake).datum();
+          const name = data.properties.name;
+          const country = lake.getAttribute('data-parent-country');
+          if (name && country && country !== 'null') {
+            attribution.lakes[name] = country;
+          }
+        } catch(e) {}
+      });
+      
+      // Extraire rivers
+      document.querySelectorAll('.layer-river').forEach(river => {
+        try {
+          const data = d3.select(river).datum();
+          const name = data.properties.name;
+          const country = river.getAttribute('data-parent-country');
+          if (name && country && country !== 'null') {
+            // Détecter rivières transfrontalières
+            if (!attribution.rivers[name]) {
+              attribution.rivers[name] = country;
+            } else if (attribution.rivers[name] !== country) {
+              // Convertir en array si multi-pays
+              if (Array.isArray(attribution.rivers[name])) {
+                if (!attribution.rivers[name].includes(country)) {
+                  attribution.rivers[name].push(country);
+                }
+              } else {
+                attribution.rivers[name] = [attribution.rivers[name], country];
+              }
+            }
+          }
+        } catch(e) {}
+      });
+      
+      // Extraire regions
+      document.querySelectorAll('.layer-region').forEach(region => {
+        try {
+          const data = d3.select(region).datum();
+          const name = data.properties.name;
+          const country = lake.getAttribute('data-parent-country');
+          if (name && country && country !== 'null') {
+            attribution.regions[name] = country;
+          }
+        } catch(e) {}
+      });
+      
+      // Extraire capitals
+      document.querySelectorAll('.layer-capital').forEach(capital => {
+        try {
+          const data = d3.select(capital).datum();
+          const name = data.properties.name;
+          const country = capital.getAttribute('data-parent-country');
+          if (name && country && country !== 'null') {
+            attribution.capitals[name] = country;
+          }
+        } catch(e) {}
+      });
+      
+      console.log('📊 ATTRIBUTION GÉNÉRÉE:');
+      console.log('  Lakes:', Object.keys(attribution.lakes).length);
+      console.log('  Rivers:', Object.keys(attribution.rivers).length);
+      console.log('  Regions:', Object.keys(attribution.regions).length);
+      console.log('  Capitals:', Object.keys(attribution.capitals).length);
+      console.log('\n📋 Copie ce JSON et complète-le manuellement:\n');
+      console.log(JSON.stringify(attribution, null, 2));
+      
+      return attribution;
+    };
+
+    // ================================================
+    // 3. FONCTION DE LOOKUP
+    // ================================================
+    
+    /**
+     * Récupère l'attribution d'un élément par son nom et type de layer
+     * 
+     * @param {string} name - Nom de l'élément (ex: "Lake Superior")
+     * @param {string} layerType - Type de layer ('lakes', 'rivers', 'regions', 'capitals')
+     * @returns {string|string[]|null} - Code ISO pays ou array de codes, ou null si pas trouvé
+     */
+    window.getManualAttribution = function(name, layerType) {
+      if (!name || !layerType) return null;
+      
+      const attribution = window.LAYERS_ATTRIBUTION[layerType];
+      if (!attribution) return null;
+      
+      return attribution[name] || null;
+    };
+
+    // ================================================
+    // 4. FONCTION DE VALIDATION
+    // ================================================
+    
+    /**
+     * Valide l'intégrité du fichier d'attribution
+     * Vérifie que les codes ISO sont corrects
+     */
+    window.validateAttribution = function() {
+      const validIsoCodes = [
+        'USA', 'CAN', 'MEX', 'BRA', 'ARG', 'PER', 'COL', 'VEN', 'CHL', 'ECU',
+        'BOL', 'PRY', 'URY', 'GUY', 'SUR', 'FRA', 'DEU', 'GBR', 'ITA', 'ESP',
+        'PRT', 'NLD', 'BEL', 'CHE', 'AUT', 'POL', 'CZE', 'HUN', 'ROU', 'BGR',
+        'GRC', 'NOR', 'SWE', 'FIN', 'DNK', 'ISL', 'IRL', 'UKR', 'BLR', 'RUS',
+        'CHN', 'JPN', 'IND', 'PAK', 'BGD', 'IDN', 'THA', 'VNM', 'PHL', 'MMR',
+        'KOR', 'PRK', 'MYS', 'SGP', 'KHM', 'LAO', 'NPL', 'LKA', 'AFG', 'IRN',
+        'IRQ', 'SAU', 'TUR', 'EGY', 'ZAF', 'NGA', 'ETH', 'KEN', 'TZA', 'UGA',
+        'COD', 'SDN', 'DZA', 'MAR', 'AGO', 'MOZ', 'GHA', 'CMR', 'CIV', 'NER',
+        'BFA', 'MLI', 'ZMB', 'SEN', 'SOM', 'TCD', 'ZWE', 'GIN', 'RWA', 'BEN',
+        'TUN', 'SSD', 'TGO', 'SLE', 'LBY', 'LBR', 'MRT', 'NAM', 'GAB', 'BWA',
+        'AUS', 'NZL', 'PNG', 'FJI', 'SLB', 'VUT', 'NCL', 'PYF', 'TKM', 'UZB',
+        'KAZ', 'KGZ', 'TJK', 'MNG', 'AZE', 'ARM', 'GEO', 'EST', 'LVA', 'LTU',
+        'SRB', 'HRV', 'SVN', 'BIH', 'MKD', 'ALB', 'MNE', 'XKX', 'SVK', 'ISR',
+        'JOR', 'LBN', 'SYR', 'YEM', 'OMN', 'ARE', 'QAT', 'KWT', 'BHR', 'CYP'
+      ];
+      
+      const errors = [];
+      
+      for (const layerType of ['lakes', 'rivers', 'regions', 'capitals']) {
+        const attribution = window.LAYERS_ATTRIBUTION[layerType];
+        
+        for (const [name, country] of Object.entries(attribution)) {
+          const countries = Array.isArray(country) ? country : [country];
+          
+          for (const code of countries) {
+            if (!validIsoCodes.includes(code)) {
+              errors.push(`❌ ${layerType} "${name}": code invalide "${code}"`);
+            }
+          }
+        }
+      }
+      
+      if (errors.length === 0) {
+        console.log('✅ Attribution valide - tous les codes ISO sont corrects');
+        return true;
+      } else {
+        console.error('⚠️ Erreurs détectées:');
+        errors.forEach(err => console.error(err));
+        return false;
+      }
+    };
+
+    // ================================================
+    // 5. STATISTIQUES
+    // ================================================
+    
+    window.getAttributionStats = function() {
+      const stats = {
+        lakes: Object.keys(window.LAYERS_ATTRIBUTION.lakes).length,
+        rivers: Object.keys(window.LAYERS_ATTRIBUTION.rivers).length,
+        regions: Object.keys(window.LAYERS_ATTRIBUTION.regions).length,
+        capitals: Object.keys(window.LAYERS_ATTRIBUTION.capitals).length
+      };
+      
+      console.log('📊 STATISTIQUES ATTRIBUTION:');
+      console.log(`  Lakes: ${stats.lakes} entrées`);
+      console.log(`  Rivers: ${stats.rivers} entrées`);
+      console.log(`  Regions: ${stats.regions} entrées`);
+      console.log(`  Capitals: ${stats.capitals} entrées`);
+      console.log(`  TOTAL: ${stats.lakes + stats.rivers + stats.regions + stats.capitals} entrées`);
+      
+      return stats;
+    };
+
+    // ================================================
+    // AUTO-EXÉCUTION
+    // ================================================
+    
+    console.log('✅ LAYERS_ATTRIBUTION chargé');
+    console.log('📊 Entrées:', window.getAttributionStats());
+    console.log('🔧 Commandes disponibles:');
+    console.log('  - window.getManualAttribution(name, layerType)');
+    console.log('  - window.generateAttribution() // Pour extraire auto');
+    console.log('  - window.validateAttribution() // Valider codes ISO');
+    console.log('  - window.getAttributionStats() // Statistiques');
+  </script>
+</body>
+</html>
