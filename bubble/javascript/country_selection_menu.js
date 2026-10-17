@@ -1,4 +1,8 @@
 <style>
+  /* ============================================ */
+  /* COUNTRIES PANEL - CSS COMPLET              */
+  /* ============================================ */
+
   * {
     margin: 0;
     padding: 0;
@@ -10,7 +14,10 @@
     overflow: hidden;
   }
 
-  /* SIDEBAR BLANCHE */
+  /* ============================================ */
+  /* SIDEBAR BLANCHE                             */
+  /* ============================================ */
+
   .custom-sidebar {
     position: fixed;
     left: 0;
@@ -52,7 +59,10 @@
     height: 24px;
   }
 
-  /* PANNEAU LATÉRAL */
+  /* ============================================ */
+  /* PANNEAU LATÉRAL                             */
+  /* ============================================ */
+
   .side-panel {
     position: fixed;
     left: -378px;
@@ -79,7 +89,10 @@
     box-sizing: border-box;
   }
 
-  /* RESIZE HANDLE */
+  /* ============================================ */
+  /* RESIZE HANDLE                               */
+  /* ============================================ */
+
   .panel-resize-handle {
     position: absolute;
     right: -4px;
@@ -114,7 +127,10 @@
     opacity: 1;
   }
 
-  /* HEADER DU PANNEAU */
+  /* ============================================ */
+  /* HEADER DU PANNEAU                           */
+  /* ============================================ */
+
   .panel-header {
     padding: 14px 12px;
     border-bottom: 1px solid #E5E7EB;
@@ -178,7 +194,10 @@
     pointer-events: none;
   }
 
-  /* SEARCH SUGGESTIONS */
+  /* ============================================ */
+  /* SEARCH SUGGESTIONS                          */
+  /* ============================================ */
+
   .search-suggestions {
     position: absolute;
     top: calc(100% + 4px);
@@ -188,7 +207,8 @@
     border: none;
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-height: 200px;
+    max-height: 300px;
+    overflow-x: hidden;
     overflow-y: auto;
     z-index: 1000;
     display: none;
@@ -198,6 +218,24 @@
   .search-suggestions.visible {
     display: block;
   }
+
+  .search-suggestions::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .search-suggestions::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .search-suggestions::-webkit-scrollbar-thumb {
+    background: #D9D9D9;
+    border-radius: 3px;
+  }
+
+  /* ============================================ */
+  /* PAYS INDIVIDUELS (HORS GROUPE)              */
+  /* ============================================ */
 
   .search-suggestion-item {
     height: 30px;
@@ -220,6 +258,10 @@
     cursor: default;
   }
 
+  .search-suggestion-item.added:hover {
+    background: rgba(60, 241, 154, 0.30);
+  }
+
   .suggestion-country-name {
     color: #1E1E1E;
     max-width: 100px;
@@ -229,32 +271,64 @@
     flex: 1;
   }
 
-  .suggestion-add-btn {
+  .search-suggestion-item .suggestion-add-btn {
     width: 24px;
     height: 24px;
     background: rgba(60, 241, 154, 0.20);
     border-radius: 4px;
     border: none;
     cursor: pointer;
-    transition: background 0.15s;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
   }
 
-  .suggestion-add-btn svg {
+  .search-suggestion-item .suggestion-add-btn svg {
     width: 24px;
     height: 24px;
     stroke: #1E1E1E;
   }
 
   .search-suggestion-item:not(.added):hover .suggestion-add-btn {
-    background: #F5F5F5;
+    background: #E8E8E8;
+  }
+
+  .search-suggestion-item:not(.added):hover .suggestion-add-btn svg {
+    stroke: #B3B3B3;
   }
 
   .search-suggestion-item.added .suggestion-add-btn {
+    display: none;
+  }
+
+  .search-suggestion-item .suggestion-remove-btn {
+    display: none;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .search-suggestion-item .suggestion-remove-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #1E1E1E;
+  }
+
+  .search-suggestion-item.added:hover .suggestion-remove-btn {
+    display: flex;
+  }
+
+  .search-suggestion-item:not(.added) .suggestion-remove-btn {
     display: none;
   }
 
@@ -265,7 +339,283 @@
     font-size: 11px;
   }
 
-  /* CONTAINER SCROLLABLE */
+  /* ============================================ */
+  /* HEADER DE GROUPE                            */
+  /* ============================================ */
+
+  .suggestion-group-header {
+    padding: 3px 10px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-radius: 0;
+  }
+
+  .search-suggestions > .suggestion-group-header:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+
+  .suggestion-group-header:hover {
+    background: #F5F5F5;
+  }
+
+  .suggestion-group-header.group-added {
+    background: rgba(60, 241, 154, 0.20);
+  }
+
+  .suggestion-group-header.group-added:hover {
+    background: rgba(60, 241, 154, 0.30);
+  }
+
+  .suggestion-group-header .group-name {
+    color: #1E1E1E;
+    font-size: 12px;
+    max-width: 100px;
+  }
+
+  .suggestion-group-header .group-add-btn {
+    width: 24px;
+    height: 24px;
+    background: rgba(60, 241, 154, 0.20);
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .suggestion-group-header .group-add-btn svg {
+    stroke: #1E1E1E;
+    width: 24px;
+    height: 24px;
+  }
+
+  .suggestion-group-header:hover .group-add-btn {
+    background: #E8E8E8;
+  }
+
+  .suggestion-group-header:hover .group-add-btn svg {
+    stroke: #B3B3B3;
+  }
+
+  .suggestion-group-header.group-added .group-add-btn {
+    display: none;
+  }
+
+  .suggestion-group-header .group-remove-btn {
+    display: none;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .suggestion-group-header .group-remove-btn svg {
+    stroke: #1E1E1E;
+    width: 24px;
+    height: 24px;
+  }
+
+  .suggestion-group-header.group-added:hover .group-remove-btn {
+    display: flex;
+  }
+
+  /* ============================================ */
+  /* EU HEADER - SPÉCIAL                         */
+  /* ============================================ */
+
+  .suggestion-group-header.eu-header {
+    background: rgba(0, 51, 153, 0.75);
+    border-radius: 0;
+  }
+
+  .search-suggestions > .suggestion-group-header.eu-header:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+
+  .suggestion-group-header.eu-header:hover {
+    background: rgba(0, 51, 153, 0.85);
+  }
+
+  .suggestion-group-header.eu-header .group-name {
+    color: white;
+  }
+
+  .suggestion-group-header.eu-header .group-add-btn {
+    background: rgba(0, 51, 153, 0.78);
+  }
+
+  .suggestion-group-header.eu-header .group-add-btn svg {
+    stroke: #FFCB01;
+  }
+
+  .suggestion-group-header.eu-header:hover .group-add-btn {
+    background: rgba(0, 51, 153, 0.90);
+  }
+
+  .suggestion-group-header.eu-header:hover .group-add-btn svg {
+    stroke: #FFCB01;
+  }
+
+  .suggestion-group-header.eu-header.group-added {
+    background: rgba(0, 51, 153, 0.75);
+  }
+
+  .suggestion-group-header.eu-header.group-added:hover {
+    background: rgba(0, 51, 153, 0.85);
+  }
+
+  .suggestion-group-header.eu-header .group-remove-btn {
+    background: rgba(0, 51, 153, 0.78);
+  }
+
+  .suggestion-group-header.eu-header .group-remove-btn svg {
+    stroke: #FFCB01;
+  }
+
+  .suggestion-group-header.eu-header:hover .group-remove-btn {
+    background: rgba(0, 51, 153, 0.90);
+  }
+
+  /* ============================================ */
+  /* PAYS DANS UN GROUPE                         */
+  /* ============================================ */
+
+  .suggestion-group-item {
+    height: 30px;
+    padding: 3px 10px 3px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    background: white;
+    transition: background 0.15s ease;
+  }
+
+  .suggestion-group-item:hover {
+    background: #F5F5F5;
+  }
+
+  .suggestion-group-item.added {
+    background: rgba(60, 241, 154, 0.20);
+  }
+
+  .suggestion-group-item.added:hover {
+    background: rgba(60, 241, 154, 0.30);
+  }
+
+  .suggestion-group-item:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  .tree-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tree-icon svg {
+    stroke: #B3B3B3;
+    width: 24px;
+    height: 24px;
+  }
+
+  .suggestion-group-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .suggestion-group-item .country-name {
+    color: #1E1E1E;
+    font-size: 12px;
+  }
+
+  .suggestion-group-item:not(.added) .item-add-btn {
+    width: 24px;
+    height: 24px;
+    background: rgba(60, 241, 154, 0.20);
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .suggestion-group-item:not(.added) .item-add-btn svg {
+    stroke: #1E1E1E;
+    width: 24px;
+    height: 24px;
+  }
+
+  .suggestion-group-item:not(.added):hover .item-add-btn {
+    background: #E8E8E8;
+  }
+
+  .suggestion-group-item:not(.added):hover .item-add-btn svg {
+    stroke: #B3B3B3;
+  }
+
+  .suggestion-group-item:not(.added) .item-remove-btn {
+    display: none;
+  }
+
+  .suggestion-group-item.added .item-add-btn {
+    display: none;
+  }
+
+  .suggestion-group-item.added .item-remove-btn {
+    display: none;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .suggestion-group-item.added .item-remove-btn svg {
+    stroke: #1E1E1E;
+    width: 24px;
+    height: 24px;
+  }
+
+  .suggestion-group-item.added:hover .item-remove-btn {
+    display: flex;
+  }
+
+  /* ============================================ */
+  /* CONTAINER SCROLLABLE                        */
+  /* ============================================ */
+
   .panel-scrollable-content {
     flex: 1;
     overflow-y: auto;
@@ -274,20 +624,20 @@
   }
 
   .panel-scrollable-content::-webkit-scrollbar {
-    width: 8px;
+    width: 5px;
   }
 
   .panel-scrollable-content::-webkit-scrollbar-track {
-    background: #FFFFFF;
+    background: transparent;
   }
 
   .panel-scrollable-content::-webkit-scrollbar-thumb {
-    background: #E5E7EB;
-    border-radius: 4px;
+    background: #D9D9D9;
+    border-radius: 3px;
   }
 
   /* ============================================ */
-  /* LAYERS TABLE SECTION */
+  /* LAYERS TABLE SECTION                        */
   /* ============================================ */
 
   .layers-table-section {
@@ -344,35 +694,43 @@
     max-height: 600px;
   }
 
-  /* TABLE CONTAINER */
+  /* ============================================ */
+  /* TABLE CONTAINER                             */
+  /* ============================================ */
+
   .layers-table-container {
     position: relative;
     overflow: auto;
     max-height: 400px;
     background: #FFFFFF;
+    padding: 2px;
   }
 
   .layers-table-container::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   .layers-table-container::-webkit-scrollbar-track {
-    background: #F5F5F5;
+    background: transparent;
   }
 
   .layers-table-container::-webkit-scrollbar-thumb {
-    background: #D1D5DB;
+    background: #D9D9D9;
     border-radius: 3px;
   }
 
   .layers-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background: #FFFFFF;
   }
 
-  /* HEADER ROW - Sticky */
+  /* ============================================ */
+  /* HEADER ROW - Sticky                         */
+  /* ============================================ */
+
   .layers-table thead {
     position: sticky;
     top: 0;
@@ -381,24 +739,19 @@
   }
 
   .layers-table th {
-    padding: 8px 10px;
+    padding: 3px;
     text-align: center;
     font-size: 12px;
     font-weight: 400;
     color: #757575;
     background: #FFFFFF;
     white-space: nowrap;
-    min-width: 65px;
+    min-width: 70px;
     max-width: 85px;
     height: 30px;
     vertical-align: middle;
-    cursor: move;
     user-select: none;
-    transition: background 0.15s ease;
-  }
-
-  .layers-table th[draggable="true"]:hover {
-    background: #F5F5F5;
+    cursor: pointer;
   }
 
   .layers-table th:first-child {
@@ -416,45 +769,95 @@
     width: 80px;
     min-width: 80px;
     text-align: left;
+    padding-left: 6px;
     position: sticky;
     left: 36px;
     z-index: 4;
     background: #FFFFFF;
-    font-weight: 500;
+  }
+
+  /* ============================================ */
+  /* HEADER BUTTONS (frame intérieure)           */
+  /* ============================================ */
+
+  .header-btn {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    transition: background 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+  }
+
+  .header-btn:hover {
+    background: #F5F5F5;
+  }
+
+  .countries-btn {
     color: #1E1E1E;
-    cursor: default;
+    font-weight: 500;
   }
 
-  .layer-header-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+  .countries-btn:hover {
+    background: #F5F5F5;
   }
 
-  .layer-color-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  .countries-btn.all-active {
+    background: #1E1E1E;
+    color: white;
   }
 
-  /* BODY ROWS */
+  .countries-btn.all-active:hover {
+    background: #333333;
+  }
+
+  .layer-btn {
+    color: #1E1E1E;
+  }
+
+  .layer-btn[data-layer="regions"].layer-active {
+    background: rgba(255, 56, 60, 0.80);
+    color: white;
+  }
+
+  .layer-btn[data-layer="regions"].layer-active:hover {
+    background: rgba(255, 56, 60, 0.95);
+  }
+
+  .layer-btn[data-layer="lakes"].layer-active {
+    background: rgba(255, 141, 40, 0.80);
+    color: white;
+  }
+
+  .layer-btn[data-layer="lakes"].layer-active:hover {
+    background: rgba(255, 141, 40, 0.95);
+  }
+
+  .layer-btn[data-layer="rivers"].layer-active {
+    background: rgba(52, 199, 89, 0.80);
+    color: white;
+  }
+
+  .layer-btn[data-layer="rivers"].layer-active:hover {
+    background: rgba(52, 199, 89, 0.95);
+  }
+
+  .layer-btn[data-layer="capitals"].layer-active {
+    background: rgba(255, 204, 0, 0.80);
+    color: white;
+  }
+
+  .layer-btn[data-layer="capitals"].layer-active:hover {
+    background: rgba(255, 204, 0, 0.95);
+  }
+
+  /* ============================================ */
+  /* BODY ROWS                                   */
+  /* ============================================ */
+
   .layers-table tbody tr {
     height: 30px;
-    transition: background 0.15s ease;
-  }
-
-  .layers-table tbody tr:nth-child(even) {
-    background: #FFFFFF;
-  }
-
-  .layers-table tbody tr:nth-child(odd) {
-    background: #FFFFFF;
-  }
-
-  .layers-table tbody tr:hover {
-    background: #F0F0F0 !important;
   }
 
   .layers-table td {
@@ -462,19 +865,45 @@
     text-align: center;
     font-size: 12px;
     color: #1E1E1E;
-    min-width: 65px;
+    min-width: 70px;
     max-width: 85px;
     height: 30px;
     vertical-align: middle;
     background: #FFFFFF;
   }
 
-  /* Appliquer le fond vert UNIQUEMENT sur les cellules des lignes impaires */
   .layers-table tbody tr:nth-child(odd) td {
-    background: linear-gradient(rgba(60, 241, 154, 0.1), rgba(60, 241, 154, 0.1)), #FFFFFF;
+    background: #F5F5F5;
   }
 
-  /* COLONNE 1 : Drag + Poubelle */
+  .layers-table tbody tr:nth-child(odd) td:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .layers-table tbody tr:nth-child(odd) td:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  .layers-table tbody tr:hover td {
+    background: #E8E8E8 !important;
+  }
+
+  .layers-table tbody tr:hover td:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .layers-table tbody tr:hover td:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  /* ============================================ */
+  /* COLONNE 1 : Drag + Poubelle                 */
+  /* ============================================ */
+
   .layers-table td:first-child {
     width: 36px;
     min-width: 36px;
@@ -483,11 +912,6 @@
     left: 0;
     z-index: 2;
     padding: 0;
-  }
-
-  /* Vert plus foncé sur colonne Actions des lignes impaires */
-  .layers-table tbody tr:nth-child(odd) td:first-child {
-    background: linear-gradient(rgba(60, 241, 154, 0.2), rgba(60, 241, 154, 0.2)), #FFFFFF;
   }
 
   .row-actions {
@@ -527,12 +951,14 @@
     height: 12px;
   }
 
-  .delete-btn:hover svg path,
-  .delete-btn:hover svg circle {
+  .delete-btn:hover svg path {
     stroke: #EF4444;
   }
 
-  /* COLONNE 2 : Pays (sticky left) */
+  /* ============================================ */
+  /* COLONNE 2 : Pays (sticky left) - cliquable  */
+  /* ============================================ */
+
   .layers-table td:nth-child(2) {
     width: 80px;
     min-width: 80px;
@@ -542,15 +968,27 @@
     z-index: 2;
     font-weight: 400;
     line-height: 1.2;
-    padding: 4px 10px;
+    padding: 4px 6px;
+    cursor: pointer;
   }
 
-  /* Vert foncé sur colonne Countries des lignes impaires (même vert que Actions) */
-  .layers-table tbody tr:nth-child(odd) td:nth-child(2) {
-    background: linear-gradient(rgba(60, 241, 154, 0.2), rgba(60, 241, 154, 0.2)), #FFFFFF;
+  .country-name-btn {
+    padding: 4px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    transition: background 0.15s ease, color 0.15s ease;
+    color: #1E1E1E;
   }
 
-  /* COLONNES LAYERS : Checkbox */
+  .country-name-btn.all-layers-active {
+    background: #1E1E1E;
+    color: white;
+  }
+
+  /* ============================================ */
+  /* COLONNES LAYERS : Checkbox                  */
+  /* ============================================ */
+
   .layer-cell {
     position: relative;
     z-index: 1;
@@ -562,12 +1000,15 @@
     border-radius: 4px;
     cursor: pointer;
     transition: opacity 0.15s ease, transform 0.15s ease;
-    opacity: 0;
     margin: 0 auto;
   }
 
+  .layer-checkbox:not(.active) {
+    opacity: 0.06;
+  }
+
   .layer-checkbox.active {
-    opacity: 1;
+    opacity: 0.8;
   }
 
   .layer-checkbox:hover {
@@ -575,22 +1016,21 @@
   }
 
   .layer-checkbox[data-layer="regions"] {
-    background: rgba(255, 56, 60, 0.80);
+    background: rgba(255, 56, 60, 1);
   }
 
   .layer-checkbox[data-layer="lakes"] {
-    background: rgba(255, 141, 40, 0.80);
+    background: rgba(255, 141, 40, 1);
   }
 
   .layer-checkbox[data-layer="rivers"] {
-    background: rgba(52, 199, 89, 0.80);
+    background: rgba(52, 199, 89, 1);
   }
 
   .layer-checkbox[data-layer="capitals"] {
-    background: rgba(255, 204, 0, 0.80);
+    background: rgba(255, 204, 0, 1);
   }
 
-  /* Empty state */
   .layers-table-empty {
     padding: 24px;
     text-align: center;
@@ -599,7 +1039,7 @@
   }
 
   /* ============================================ */
-  /* CONTINENTS SECTION */
+  /* CONTINENTS SECTION                          */
   /* ============================================ */
 
   .continents-section {
@@ -676,6 +1116,10 @@
     padding: 6px 12px 12px 12px;
     background: #FFFFFF;
   }
+
+  /* ============================================ */
+  /* COUNTRY CARDS                               */
+  /* ============================================ */
 
   .country-card {
     width: 140px;
@@ -788,7 +1232,10 @@
     opacity: 0.7;
   }
 
-  /* RESPONSIVE */
+  /* ============================================ */
+  /* RESPONSIVE                                  */
+  /* ============================================ */
+
   @media (max-width: 768px) {
     .custom-sidebar {
       width: 50px;
@@ -853,30 +1300,20 @@
               <thead>
                 <tr>
                   <th></th>
-                  <th>Countries</th>
-                  <th draggable="true" data-layer-index="0">
-                    <div class="layer-header-label">
-                      <span class="layer-color-dot" style="background: rgba(255, 56, 60, 0.80);"></span>
-                      Regions
-                    </div>
+                  <th onclick="toggleAllCountriesAllLayers()">
+                    <span class="header-btn countries-btn">Countries</span>
                   </th>
-                  <th draggable="true" data-layer-index="1">
-                    <div class="layer-header-label">
-                      <span class="layer-color-dot" style="background: rgba(255, 141, 40, 0.80);"></span>
-                      Lakes
-                    </div>
+                  <th data-layer="regions" onclick="toggleLayerAllCountries('regions')">
+                    <span class="header-btn layer-btn" data-layer="regions">Regions</span>
                   </th>
-                  <th draggable="true" data-layer-index="2">
-                    <div class="layer-header-label">
-                      <span class="layer-color-dot" style="background: rgba(52, 199, 89, 0.80);"></span>
-                      Rivers
-                    </div>
+                  <th data-layer="lakes" onclick="toggleLayerAllCountries('lakes')">
+                    <span class="header-btn layer-btn" data-layer="lakes">Lakes</span>
                   </th>
-                  <th draggable="true" data-layer-index="3">
-                    <div class="layer-header-label">
-                      <span class="layer-color-dot" style="background: rgba(255, 204, 0, 0.80);"></span>
-                      Capitals
-                    </div>
+                  <th data-layer="rivers" onclick="toggleLayerAllCountries('rivers')">
+                    <span class="header-btn layer-btn" data-layer="rivers">Rivers</span>
+                  </th>
+                  <th data-layer="capitals" onclick="toggleLayerAllCountries('capitals')">
+                    <span class="header-btn layer-btn" data-layer="capitals">Capitals</span>
                   </th>
                 </tr>
               </thead>
@@ -969,6 +1406,99 @@
     }
   };
 
+  // ============================================
+  // GROUPES DE PAYS
+  // ============================================
+  const COUNTRY_GROUPS = {
+    // Continents (réutilise les clés de COUNTRIES_DATA)
+    'Africa': { type: 'continent', key: 'africa' },
+    'Asia': { type: 'continent', key: 'asia' },
+    'Europe': { type: 'continent', key: 'europe' },
+    'North America': { type: 'continent', key: 'northAmerica' },
+    'South America': { type: 'continent', key: 'southAmerica' },
+    'Oceania': { type: 'continent', key: 'oceania' },
+    
+    // Organisations
+    'European Union': {
+      type: 'organization',
+      color: 'eu',
+      countries: [
+        'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark',
+        'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland',
+        'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland',
+        'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'
+      ]
+    },
+    'ASEAN': {
+      type: 'organization',
+      countries: [
+        'Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar',
+        'Philippines', 'Singapore', 'Thailand', 'Vietnam'
+      ]
+    },
+    'Mercosur': {
+      type: 'organization',
+      countries: ['Argentina', 'Brazil', 'Paraguay', 'Uruguay', 'Venezuela']
+    },
+    'African Union': {
+      type: 'organization',
+      key: 'africa'
+    },
+    'BRICS': {
+      type: 'organization',
+      countries: ['Brazil', 'Russia', 'India', 'China', 'South Africa', 'Egypt', 'Ethiopia', 'Iran', 'United Arab Emirates']
+    },
+    'G7': {
+      type: 'organization',
+      countries: ['Canada', 'France', 'Germany', 'Italy', 'Japan', 'United Kingdom', 'United States of America']
+    },
+    'G20': {
+      type: 'organization',
+      countries: [
+        'Argentina', 'Australia', 'Brazil', 'Canada', 'China', 'France', 'Germany',
+        'India', 'Indonesia', 'Italy', 'Japan', 'Mexico', 'Russia', 'Saudi Arabia',
+        'South Africa', 'South Korea', 'Turkey', 'United Kingdom', 'United States of America'
+      ]
+    },
+    'NATO': {
+      type: 'organization',
+      countries: [
+        'Albania', 'Belgium', 'Bulgaria', 'Canada', 'Croatia', 'Czechia', 'Denmark',
+        'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Iceland',
+        'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Montenegro', 'Netherlands',
+        'Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Slovakia',
+        'Slovenia', 'Spain', 'Sweden', 'Turkey', 'United Kingdom', 'United States of America'
+      ]
+    },
+    'Arab League': {
+      type: 'organization',
+      countries: [
+        'Algeria', 'Bahrain', 'Djibouti', 'Egypt', 'Iraq', 'Jordan', 'Kuwait',
+        'Lebanon', 'Libya', 'Mauritania', 'Morocco', 'Oman', 'Palestine', 'Qatar',
+        'Saudi Arabia', 'Somalia', 'Sudan', 'Syria', 'Tunisia', 'United Arab Emirates', 'Yemen'
+      ]
+    },
+    'OPEC': {
+      type: 'organization',
+      countries: [
+        'Algeria', 'Angola', 'Congo', 'Eq. Guinea', 'Gabon', 'Iran', 'Iraq',
+        'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'
+      ]
+    }
+  };
+
+  // Helper pour obtenir les pays d'un groupe
+  function getGroupCountries(groupName) {
+    const group = COUNTRY_GROUPS[groupName];
+    if (!group) return [];
+    
+    if (group.key) {
+      return COUNTRIES_DATA[group.key]?.countries || [];
+    }
+    
+    return group.countries || [];
+  }
+
   const LAYERS = ['regions', 'lakes', 'rivers', 'capitals'];
 
   // ============================================
@@ -1004,7 +1534,6 @@
   const panelWrapper = document.getElementById('panel-wrapper');
   const sidePanel = document.getElementById('countries-panel');
 
-  // Force repaint de la bordure au chargement
   if (panelWrapper) {
     void panelWrapper.offsetHeight;
     panelWrapper.style.borderRight = '1px solid #E5E7EB';
@@ -1029,9 +1558,6 @@
       e.preventDefault();
       e.stopPropagation();
       
-      console.log('🎯 Resize started:', { startX, startWidth });
-      
-      // ✅ CRITIQUE: Attacher les listeners SEULEMENT pendant le resize
       document.addEventListener('mousemove', doResize, false);
       document.addEventListener('mouseup', stopResize, false);
     }
@@ -1048,8 +1574,6 @@
         currentPanelWidth = newWidth;
         updateClosedPosition();
       }
-      
-      // Ne PAS faire preventDefault/stopPropagation ici
     }
 
     function stopResize(e) {
@@ -1059,11 +1583,8 @@
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       
-      // ✅ CRITIQUE: Retirer les listeners après le resize
       document.removeEventListener('mousemove', doResize, false);
       document.removeEventListener('mouseup', stopResize, false);
-      
-      console.log('✅ Resize finished:', currentPanelWidth + 'px');
     }
 
     function updateClosedPosition() {
@@ -1072,7 +1593,6 @@
       }
     }
 
-    // Events UNIQUEMENT sur la poignée
     resizeHandle.addEventListener('mousedown', startResize, false);
     resizeHandle.addEventListener('touchstart', function(e) {
       e.preventDefault();
@@ -1080,10 +1600,8 @@
       startResize(e.touches[0]);
     }, { passive: false, capture: false });
     
-    // Safety: stop resize si on perd le focus
     window.addEventListener('blur', function() {
       if (isResizing) {
-        console.log('⚠️ Window blur, stopping resize');
         stopResize();
       }
     });
@@ -1111,7 +1629,6 @@
     if (panelOpen) {
       countriesPanel.style.left = '0';
     } else {
-      // Use dynamic width for closed position
       countriesPanel.style.left = `-${currentPanelWidth + 48}px`;
     }
     
@@ -1127,7 +1644,6 @@
   searchInput.addEventListener('focus', () => {
     searchContainer.classList.add('expanded');
     
-    // ✅ Si du texte est présent, réouvrir automatiquement le dropdown
     if (searchInput.value.trim() !== '') {
       searchQuery = searchInput.value.toLowerCase().trim();
       updateSearchSuggestions();
@@ -1135,7 +1651,6 @@
   });
 
   searchInput.addEventListener('blur', () => {
-    // ✅ Délai pour permettre le clic sur le bouton
     setTimeout(() => {
       searchContainer.classList.remove('expanded');
       searchSuggestions.classList.remove('visible');
@@ -1159,38 +1674,116 @@
       return;
     }
 
-    const allCountries = Object.values(COUNTRIES_DATA)
-      .flatMap(continent => continent.countries);
+    const allCountries = Object.values(COUNTRIES_DATA).flatMap(continent => continent.countries);
     
-    const matches = allCountries.filter(country =>
+    // Chercher les groupes qui matchent
+    const matchingGroups = Object.keys(COUNTRY_GROUPS).filter(groupName =>
+      groupName.toLowerCase().includes(searchQuery)
+    );
+    
+    // Chercher les pays qui matchent
+    const matchingCountries = allCountries.filter(country =>
       country.toLowerCase().includes(searchQuery)
     ).slice(0, 5);
 
-    if (matches.length === 0) {
-      searchSuggestions.innerHTML = '<div class="no-results">No countries found</div>';
-      searchSuggestions.classList.add('visible');
-      return;
-    }
+    let html = '';
 
-    searchSuggestions.innerHTML = matches.map(country => {
-      const isInTable = layersTableCountries.includes(country);
-      // ✅ Échapper les apostrophes pour éviter les bugs avec Côte d'Ivoire, etc.
-      const escapedCountry = country.replace(/'/g, "\\'");
-      return `
-        <div class="search-suggestion-item ${isInTable ? 'added' : ''}">
-          <span class="suggestion-country-name">${country}</span>
-          ${!isInTable ? `
-            <button class="suggestion-add-btn" onmousedown="event.preventDefault(); addCountryToTable('${escapedCountry}');">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14"/>
-                <path d="M12 5v14"/>
-              </svg>
-            </button>
-          ` : ''}
+    // Afficher les groupes trouvés
+    matchingGroups.forEach(groupName => {
+      const group = COUNTRY_GROUPS[groupName];
+      const countries = getGroupCountries(groupName);
+      const isEU = group.color === 'eu';
+      const escapedGroupName = groupName.replace(/'/g, "\\'");
+      
+      // Vérifier si tous les pays du groupe sont dans la table
+      const allCountriesAdded = countries.length > 0 && countries.every(c => layersTableCountries.includes(c));
+      
+      // Header du groupe
+      html += `
+        <div class="suggestion-group-header ${isEU ? 'eu-header' : ''} ${allCountriesAdded ? 'group-added' : ''}">
+          <span class="group-name">${groupName}</span>
+          <button class="group-add-btn" onmousedown="event.preventDefault(); event.stopPropagation(); addGroupToTable('${escapedGroupName}');">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12H19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 5V19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="group-remove-btn" onmousedown="event.preventDefault(); event.stopPropagation(); removeGroupFromTable('${escapedGroupName}');">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12H19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
       `;
-    }).join('');
+      
+      // Liste des pays du groupe
+      countries.forEach((country, index) => {
+        const isInTable = layersTableCountries.includes(country);
+        const escapedCountry = country.replace(/'/g, "\\'");
+        const isLast = index === countries.length - 1;
+        
+        // Icône arborescence (├ ou └)
+        const treeIcon = isLast 
+          ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 12L19 12" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 5V12" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`
+          : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 12L19 12" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 5V19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`;
+        
+        html += `
+          <div class="suggestion-group-item ${isInTable ? 'added' : ''}">
+            <div class="suggestion-group-item-left">
+              <div class="tree-icon">${treeIcon}</div>
+              <span class="country-name">${country}</span>
+            </div>
+            <button class="item-add-btn" onmousedown="event.preventDefault(); addCountryToTable('${escapedCountry}');">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12H19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 5V19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="item-remove-btn" onmousedown="event.preventDefault(); removeCountryFromTable('${escapedCountry}');">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12H19" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        `;
+      });
+    });
 
+    // Si pas de groupe, afficher les pays directement
+    if (matchingGroups.length === 0) {
+      if (matchingCountries.length === 0) {
+        html = '<div class="no-results">No countries found</div>';
+      } else {
+        html = matchingCountries.map(country => {
+          const isInTable = layersTableCountries.includes(country);
+          const escapedCountry = country.replace(/'/g, "\\'");
+          return `
+            <div class="search-suggestion-item ${isInTable ? 'added' : ''}">
+              <span class="suggestion-country-name">${country}</span>
+              <button class="suggestion-add-btn" onmousedown="event.preventDefault(); addCountryToTable('${escapedCountry}');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/>
+                  <path d="M12 5v14"/>
+                </svg>
+              </button>
+              <button class="suggestion-remove-btn" onmousedown="event.preventDefault(); removeCountryFromTable('${escapedCountry}');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" stroke-width="0.833" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/>
+                </svg>
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    searchSuggestions.innerHTML = html;
     searchSuggestions.classList.add('visible');
   }
 
@@ -1204,30 +1797,60 @@
     
     renderLayersTable();
     
-    // ✅ Mettre à jour l'affichage avec un délai pour ne pas interférer avec le focus
     setTimeout(() => {
       updateSearchSuggestions();
     }, 50);
     
-    console.log(`✅ Added ${countryName} to layers table, menu stays open`);
+    console.log(`✅ Added ${countryName} to layers table`);
   }
 
-  function addCountryToTableAndClose(countryName) {
-    if (layersTableCountries.includes(countryName)) {
-      return;
-    }
-
-    layersTableCountries.push(countryName);
-    countryLayers[countryName] = [];
+  // Ajouter tous les pays d'un groupe
+  function addGroupToTable(groupName) {
+    const countries = getGroupCountries(groupName);
+    
+    countries.forEach(country => {
+      if (!layersTableCountries.includes(country)) {
+        layersTableCountries.push(country);
+        countryLayers[country] = [];
+      }
+    });
     
     renderLayersTable();
+    updateSearchSuggestions();
     
-    // ✅ Fermer le dropdown
-    searchSuggestions.classList.remove('visible');
-    searchContainer.classList.remove('expanded');
-    searchInput.blur();
+    console.log(`✅ Added group ${groupName} (${countries.length} countries)`);
+  }
+
+  // Retirer un pays de la table
+  function removeCountryFromTable(country) {
+    const index = layersTableCountries.indexOf(country);
+    if (index > -1) {
+      layersTableCountries.splice(index, 1);
+      delete countryLayers[country];
+      
+      renderLayersTable();
+      updateSearchSuggestions();
+      
+      console.log(`❌ Removed ${country} from table`);
+    }
+  }
+
+  // Retirer tous les pays d'un groupe
+  function removeGroupFromTable(groupName) {
+    const countries = getGroupCountries(groupName);
     
-    console.log(`✅ Added ${countryName} to layers table and closed dropdown`);
+    countries.forEach(country => {
+      const index = layersTableCountries.indexOf(country);
+      if (index > -1) {
+        layersTableCountries.splice(index, 1);
+        delete countryLayers[country];
+      }
+    });
+    
+    renderLayersTable();
+    updateSearchSuggestions();
+    
+    console.log(`❌ Removed group ${groupName} (${countries.length} countries)`);
   }
 
   // ============================================
@@ -1251,6 +1874,7 @@
           </td>
         </tr>
       `;
+      updateLayerHeaders();
       return;
     }
 
@@ -1258,26 +1882,27 @@
 
     layersTableCountries.forEach(country => {
       const escapedCountry = country.replace(/'/g, "\\'");
+      const allLayersActive = LAYERS.every(layer => countryLayers[country] && countryLayers[country].includes(layer));
       
       const row = document.createElement('tr');
       row.setAttribute('data-country', country);
       row.setAttribute('draggable', 'true');
 
-      // Col 1 : Actions
+      // Col 1 : Actions (drag + delete)
       const actionsCell = document.createElement('td');
       actionsCell.innerHTML = `
         <div class="row-actions">
           <div class="drag-handle">
             <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
               <circle cx="1.77778" cy="1.77778" r="1.77778" fill="#B3B3B3"/>
-              <circle cx="6.22224" cy="10.6667" r="1.77778" fill="#B3B3B3"/>
-              <circle cx="6.22224" cy="6.22224" r="1.77778" fill="#B3B3B3"/>
               <circle cx="6.22224" cy="1.77778" r="1.77778" fill="#B3B3B3"/>
               <circle cx="1.77778" cy="6.22224" r="1.77778" fill="#B3B3B3"/>
+              <circle cx="6.22224" cy="6.22224" r="1.77778" fill="#B3B3B3"/>
               <circle cx="1.77778" cy="10.6667" r="1.77778" fill="#B3B3B3"/>
+              <circle cx="6.22224" cy="10.6667" r="1.77778" fill="#B3B3B3"/>
             </svg>
           </div>
-          <div class="delete-btn" onclick="deleteCountryRow('${escapedCountry}')">
+          <div class="delete-btn" onclick="event.stopPropagation(); deleteCountryRow('${escapedCountry}')">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M9.5 3V10C9.5 10.2652 9.39464 10.5196 9.20711 10.7071C9.01957 10.8946 8.76522 11 8.5 11H3.5C3.23478 11 2.98043 10.8946 2.79289 10.7071C2.60536 10.5196 2.5 10.2652 2.5 10V3" stroke="#B3B3B3" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M1.5 3H10.5" stroke="#B3B3B3" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1288,9 +1913,12 @@
       `;
       row.appendChild(actionsCell);
 
-      // Col 2 : Country
+      // Col 2 : Country name (clickable)
       const countryCell = document.createElement('td');
-      countryCell.textContent = country;
+      countryCell.onclick = () => toggleCountryAllLayers(country);
+      countryCell.innerHTML = `
+        <span class="country-name-btn ${allLayersActive ? 'all-layers-active' : ''}">${country}</span>
+      `;
       row.appendChild(countryCell);
 
       // Cols 3-6 : Layers
@@ -1315,6 +1943,118 @@
     });
 
     setupRowDragAndDrop();
+    updateLayerHeaders();
+  }
+
+  // ============================================
+  // UPDATE LAYER HEADERS STATE
+  // ============================================
+  function updateLayerHeaders() {
+    // Update "Countries" button
+    const countriesBtn = document.querySelector('.countries-btn');
+    if (countriesBtn) {
+      const allActive = layersTableCountries.length > 0 && layersTableCountries.every(country => 
+        LAYERS.every(layer => countryLayers[country] && countryLayers[country].includes(layer))
+      );
+      countriesBtn.classList.toggle('all-active', allActive);
+    }
+    
+    // Update each layer button
+    LAYERS.forEach(layer => {
+      const layerBtn = document.querySelector(`.layer-btn[data-layer="${layer}"]`);
+      if (layerBtn) {
+        const allActive = layersTableCountries.length > 0 && layersTableCountries.every(country => 
+          countryLayers[country] && countryLayers[country].includes(layer)
+        );
+        layerBtn.classList.toggle('layer-active', allActive);
+      }
+    });
+  }
+
+  // ============================================
+  // TOGGLE ALL LAYERS FOR ONE COUNTRY
+  // ============================================
+  function toggleCountryAllLayers(country) {
+    if (!countryLayers[country]) {
+      countryLayers[country] = [];
+    }
+    
+    const allActive = LAYERS.every(layer => countryLayers[country].includes(layer));
+    
+    if (allActive) {
+      countryLayers[country] = [];
+    } else {
+      countryLayers[country] = [...LAYERS];
+    }
+    
+    renderLayersTable();
+    
+    LAYERS.forEach(layer => {
+      if (typeof window.mapFunctions !== 'undefined' && window.mapFunctions.toggleLayerForCountry) {
+        window.mapFunctions.toggleLayerForCountry(country, layer, countryLayers[country].includes(layer));
+      }
+    });
+    
+    console.log(`Toggle all layers for ${country}:`, countryLayers[country]);
+  }
+
+  // ============================================
+  // TOGGLE ALL COUNTRIES FOR ONE LAYER
+  // ============================================
+  function toggleLayerAllCountries(layer) {
+    const allActive = layersTableCountries.every(country => 
+      countryLayers[country] && countryLayers[country].includes(layer)
+    );
+    
+    layersTableCountries.forEach(country => {
+      if (!countryLayers[country]) {
+        countryLayers[country] = [];
+      }
+      
+      if (allActive) {
+        const index = countryLayers[country].indexOf(layer);
+        if (index > -1) {
+          countryLayers[country].splice(index, 1);
+        }
+      } else {
+        if (!countryLayers[country].includes(layer)) {
+          countryLayers[country].push(layer);
+        }
+      }
+      
+      if (typeof window.mapFunctions !== 'undefined' && window.mapFunctions.toggleLayerForCountry) {
+        window.mapFunctions.toggleLayerForCountry(country, layer, countryLayers[country].includes(layer));
+      }
+    });
+    
+    renderLayersTable();
+    console.log(`Toggle ${layer} for all countries:`, !allActive);
+  }
+
+  // ============================================
+  // TOGGLE EVERYTHING
+  // ============================================
+  function toggleAllCountriesAllLayers() {
+    const allActive = layersTableCountries.every(country => 
+      LAYERS.every(layer => countryLayers[country] && countryLayers[country].includes(layer))
+    );
+    
+    layersTableCountries.forEach(country => {
+      if (allActive) {
+        countryLayers[country] = [];
+      } else {
+        countryLayers[country] = [...LAYERS];
+      }
+      
+      LAYERS.forEach(layer => {
+        if (typeof window.mapFunctions !== 'undefined' && window.mapFunctions.toggleLayerForCountry) {
+          window.mapFunctions.toggleLayerForCountry(country, layer, countryLayers[country].includes(layer));
+        }
+      });
+    });
+    
+    renderLayersTable();
+    console.log(`Toggle all:`, !allActive);
   }
 
   // ============================================
@@ -1395,62 +2135,6 @@
       });
     });
   }
-
-  // ============================================
-  // DRAG & DROP COLUMNS (LAYERS)
-  // ============================================
-  let draggedColumn = null;
-
-  function setupColumnDragAndDrop() {
-    const headers = document.querySelectorAll('.layers-table th[draggable="true"]');
-
-    headers.forEach(header => {
-      header.addEventListener('dragstart', (e) => {
-        draggedColumn = header;
-        header.style.opacity = '0.5';
-      });
-
-      header.addEventListener('dragend', (e) => {
-        header.style.opacity = '1';
-        
-        // ✅ Lire l'ordre actuel du DOM (après les déplacements visuels)
-        const headersInOrder = document.querySelectorAll('.layers-table th[draggable="true"]');
-        const newOrder = [];
-        
-        // ✅ Mettre à jour les data-layer-index pour correspondre à la position visuelle
-        headersInOrder.forEach((h, visualIndex) => {
-          const oldIndex = parseInt(h.getAttribute('data-layer-index'));
-          newOrder.push(LAYERS[oldIndex]);
-          h.setAttribute('data-layer-index', visualIndex);
-        });
-        
-        // ✅ Mettre à jour l'array LAYERS avec le nouvel ordre
-        LAYERS.length = 0;
-        LAYERS.push(...newOrder);
-        
-        // ✅ Redessiner le tableau avec le nouvel ordre
-        renderLayersTable();
-        
-        draggedColumn = null;
-      });
-
-      header.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        if (draggedColumn && draggedColumn !== header) {
-          const rect = header.getBoundingClientRect();
-          const midpoint = rect.left + rect.width / 2;
-          
-          if (e.clientX < midpoint) {
-            header.parentNode.insertBefore(draggedColumn, header);
-          } else {
-            header.parentNode.insertBefore(draggedColumn, header.nextSibling);
-          }
-        }
-      });
-    });
-  }
-
-  setupColumnDragAndDrop();
 
   // ============================================
   // CONTINENTS - Filtrage
@@ -1737,7 +2421,7 @@
     const countryElements = document.querySelectorAll('[data-country-name]');
     
     if (countryElements.length === 0) {
-      console.warn('⚠️ No countries found in MapFlow');
+      console.warn('⚠️ No countries found in WorMap');
       return;
     }
     
@@ -1793,5 +2477,5 @@
     }
   };
 
-  console.log('✅ Countries panel initialized with resizable width (Bubble-optimized)');
+  console.log('✅ Countries panel initialized with groups search (WorMap)');
 </script>
