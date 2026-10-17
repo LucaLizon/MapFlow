@@ -401,10 +401,68 @@
     .custom-range-slider::-moz-range-thumb:hover {
       transform: scale(1.1);
     }
+
+    /* 🎯 SCROLLBARS STYLE FIGMA - THUMB SEULEMENT */
+    .map-scrollbar {
+      position: absolute;
+      background: transparent;
+      border-radius: 3px;
+      opacity: 1;
+      pointer-events: auto;
+      cursor: default;      /* ✅ Curseur normal */
+      z-index: 1000;
+    }
+
+    .map-scrollbar-h {
+      bottom: 4px;
+      left: 60px;
+      right: 60px;
+      height: 5px;
+    }
+
+    .map-scrollbar-v {
+      right: 4px;
+      top: 40px;
+      bottom: 60px;
+      width: 5px;
+    }
+
+    .scrollbar-thumb {
+      position: absolute;
+      background: #D9D9D9;
+      border-radius: 3px;
+      cursor: default;      /* ✅ Curseur normal */
+    }
+
+    .scrollbar-thumb:hover {
+      background: #BFBFBF;
+      cursor: default;      /* ✅ Curseur normal */
+    }
+
+    .scrollbar-thumb:active {
+      background: #A6A6A6;
+      cursor: default;      /* ✅ Curseur normal (plus de grabbing) */
+    }
+
+    .map-scrollbar-h .scrollbar-thumb {
+      height: 100%;
+      min-width: 20px;
+    }
+
+    .map-scrollbar-v .scrollbar-thumb {
+      width: 100%;
+      min-height: 20px;
+    }
   </style>
 </head>
 <body>
   <div id="map-container">
+    <div class="map-scrollbar map-scrollbar-h" id="scrollbar-h">
+      <div class="scrollbar-thumb" id="scrollbar-thumb-h"></div>
+    </div>
+    <div class="map-scrollbar map-scrollbar-v" id="scrollbar-v">
+      <div class="scrollbar-thumb" id="scrollbar-thumb-v"></div>
+    </div>
     <div class="loading">Loading map...</div>
   </div>
   
@@ -429,6 +487,7 @@
       };
 
       // 🗺️ CONFIGURATION DES LAYERS
+      // 🗺️ CONFIGURATION DES LAYERS
       const LAYER_CONFIGS = {
         regions: {
           name: 'Regions',
@@ -441,15 +500,16 @@
           type: 'polygon',
           defaultStyle: { fill: 'rgba(156, 163, 175, 0.3)', stroke: '#FFFFFF', strokeWidth: 0.2 },
           loaded: false,
+          loading: false,      // ← NOUVEAU
+          loadPromise: null,   // ← NOUVEAU
           data: null,
           getParentCountry: (d) => {
-            // ✅ Essayer toutes les variantes possibles
             return d.properties.adm0_a3 || 
-                   d.properties.ADM0_A3 || 
-                   d.properties.iso_a2 || 
-                   d.properties.ISO_A2 ||
-                   d.id ||
-                   null;
+                  d.properties.ADM0_A3 || 
+                  d.properties.iso_a2 || 
+                  d.properties.ISO_A2 ||
+                  d.id ||
+                  null;
           }
         },
         lakes: {
@@ -461,21 +521,20 @@
           },
           className: 'layer-lake',
           type: 'polygon',
-          defaultStyle: { fill: '#60A5FA', stroke: 'none', strokeWidth: 0 }, // ✅ Pas de stroke par défaut
+          defaultStyle: { fill: '#60A5FA', stroke: 'none', strokeWidth: 0 },
           loaded: false,
+          loading: false,      // ← NOUVEAU
+          loadPromise: null,   // ← NOUVEAU
           data: null,
           getParentCountry: (d) => {
-            // Priorité 1 : Attribution manuelle
             const name = d.properties?.name;
             if (name && window.getManualAttribution) {
               const manual = window.getManualAttribution(name, 'lakes');
               if (manual) return Array.isArray(manual) ? manual[0] : manual;
             }
-            // Priorité 2 : Propriété "admin" si disponible
             if (d.properties.admin && countryNameToCode.has(d.properties.admin)) {
               return countryNameToCode.get(d.properties.admin);
             }
-            // Priorité 3 : Point-in-polygon automatique
             return guessCountryFromGeometry(d);
           }
         },
@@ -488,17 +547,17 @@
           },
           className: 'layer-river',
           type: 'line',
-          defaultStyle: { fill: 'none', stroke: '#60A5FA', strokeWidth: 0.2 }, // ✅ 0.2px très fin
+          defaultStyle: { fill: 'none', stroke: '#60A5FA', strokeWidth: 0.2 },
           loaded: false,
+          loading: false,      // ← NOUVEAU
+          loadPromise: null,   // ← NOUVEAU
           data: null,
           getParentCountry: (d) => {
-            // Priorité 1 : Attribution manuelle
             const name = d.properties?.name;
             if (name && window.getManualAttribution) {
               const manual = window.getManualAttribution(name, 'rivers');
-              if (manual) return Array.isArray(manual) ? manual[0] : manual; // Si multi-pays, prendre le premier
+              if (manual) return Array.isArray(manual) ? manual[0] : manual;
             }
-            // Priorité 2 : Point-in-polygon automatique
             return guessCountryFromGeometry(d);
           }
         },
@@ -511,8 +570,10 @@
           },
           className: 'layer-capital',
           type: 'point',
-          defaultStyle: { fill: '#EF4444', stroke: '#FFFFFF', strokeWidth: 0.2, radius: 1 }, // ✅ Radius 1px, stroke 0.2px
+          defaultStyle: { fill: '#EF4444', stroke: '#FFFFFF', strokeWidth: 0.2, radius: 1 },
           loaded: false,
+          loading: false,      // ← NOUVEAU
+          loadPromise: null,   // ← NOUVEAU
           data: null,
           filter: (d) => d.properties.FEATURECLA === 'Admin-0 capital' || d.properties.ADM0CAP === 1,
           getParentCountry: (d) => d.properties.ADM0_A3 || d.properties.adm0_a3 || d.properties.SOV_A3
@@ -698,7 +759,15 @@
           return true;
         })
         .on('zoom', (event) => {
-          g.attr('transform', event.transform);
+          // ✅ APPLIQUER LA LIMITE DE CARTE AU CLIC DROIT AUSSI
+          let transform = event.transform;
+          transform = clampTransform(transform);
+          
+          g.attr('transform', transform);
+          svg.property('__zoom', transform);  // ✅ Synchroniser l'état D3
+          
+          // ✅ Mettre à jour les scrollbars
+          if (window.updateScrollbars) window.updateScrollbars();
           
           activeTextBoxes.forEach(textBoxNode => {
             const textBoxGroup = d3.select(textBoxNode);
@@ -707,7 +776,7 @@
           });
           
           if (groupBoundingBox) {
-            const currentZoom = event.transform.k;
+            const currentZoom = transform.k;
             groupBoundingBox.style('stroke-width', 1.5 / currentZoom);
           }
           
@@ -781,13 +850,15 @@
           const newTranslateX = mouseX - worldX * newScale;
           const newTranslateY = mouseY - worldY * newScale;
           
-          const newTransform = d3.zoomIdentity
+          let newTransform = d3.zoomIdentity
             .translate(newTranslateX, newTranslateY)
             .scale(newScale);
           
           // ✅ PERFORMANCE : Application directe sans callbacks superflus
+          newTransform = clampTransform(newTransform);
           g.attr('transform', newTransform.toString());
           svg.property('__zoom', newTransform);
+          if (window.updateScrollbars) window.updateScrollbars();
           
           // ✅ PERFORMANCE : Callbacks essentiels uniquement
           if (activeTextBoxes.size > 0) {
@@ -809,80 +880,73 @@
         // 2️⃣ PAN HORIZONTAL (Shift+molette)
         // ============================================
         if (event.shiftKey) {
-          // ✅ SENSIBILITÉ ÉQUILIBRÉE (même logique)
-          const baseSensitivity = scale > 2 ? 1.5 : 1.2;
-          const sensitivity = baseSensitivity / scale;
+          // ✅ NOUVELLE FORMULE : Vitesse perçue constante
+          const sensitivity = 1.5;  // Fixe, pas divisé par scale
           const newTranslateX = translateX - event.deltaY * sensitivity;
           
-          const newTransform = d3.zoomIdentity
+          let newTransform = d3.zoomIdentity
             .translate(newTranslateX, translateY)
             .scale(scale);
-          
+
+          newTransform = clampTransform(newTransform);
           g.attr('transform', newTransform.toString());
           svg.property('__zoom', newTransform);
+          if (window.updateScrollbars) window.updateScrollbars();
           return;
         }
-        
+
         // ============================================
         // 3️⃣ PAN OMNIDIRECTIONNEL
         // ============================================
         const now = Date.now();
-        
-        // ✅ Reset direction lock après timeout OU si pas de mouvement
+
         if (now - panStartTime > DIRECTION_LOCK_TIMEOUT) {
           panDirection = null;
           accumulatedDeltaX = 0;
           accumulatedDeltaY = 0;
         }
-        
-        // Accumuler les deltas
+
         accumulatedDeltaX += Math.abs(event.deltaX);
         accumulatedDeltaY += Math.abs(event.deltaY);
         panStartTime = now;
-        
-        // ✅ SEUIL RÉDUIT : 15 → 5 pixels (plus facile de déclencher)
-        if (!panDirection && (accumulatedDeltaX + accumulatedDeltaY) > 5) {
+
+        // ✅ SEUIL RÉDUIT : 5 → 3 pixels
+        if (!panDirection && (accumulatedDeltaX + accumulatedDeltaY) > 3) {
           const ratio = accumulatedDeltaX / (accumulatedDeltaY + 0.0001);
           
-          // ✅ RATIOS ASSOUPLIS : 2.0/0.5 → 3.0/0.33 (plus facile d'avoir FREE)
-          if (ratio > 3.0) {
+          // ✅ RATIOS ASSOUPLIS : Mode free plus facile à déclencher
+          if (ratio > 2) {
             panDirection = 'horizontal';
-            console.log('🔒 Direction lock: HORIZONTAL');
-          } else if (ratio < 0.33) {
+          } else if (ratio < 0.2) {
             panDirection = 'vertical';
-            console.log('🔒 Direction lock: VERTICAL');
           } else {
             panDirection = 'free';
-            console.log('🔓 Direction: FREE (omnidirectionnel)');
           }
         }
-        
-        // Appliquer pan selon direction
+
         let deltaX = event.deltaX;
         let deltaY = event.deltaY;
-        
+
         if (panDirection === 'horizontal') {
           deltaY = 0;
         } else if (panDirection === 'vertical') {
           deltaX = 0;
         }
-        
-        // ✅ SENSIBILITÉ ÉQUILIBRÉE pour tous niveaux de zoom
-        // Zoom 1× : 1.2 (modéré)
-        // Zoom 5× : 0.3 (rapide)
-        // Zoom 10× : 0.15 (très rapide)
-        const baseSensitivity = scale > 2 ? 1.5 : 1.2;
-        const sensitivity = baseSensitivity / scale;
-        
+
+        // ✅ NOUVELLE FORMULE : Vitesse perçue constante
+        const sensitivity = 1.5;  // Fixe, pas divisé par scale
+
         const newTranslateX = translateX - deltaX * sensitivity;
         const newTranslateY = translateY - deltaY * sensitivity;
-        
-        const newTransform = d3.zoomIdentity
+
+        let newTransform = d3.zoomIdentity
           .translate(newTranslateX, newTranslateY)
           .scale(scale);
-        
+
+        newTransform = clampTransform(newTransform);
         g.attr('transform', newTransform.toString());
         svg.property('__zoom', newTransform);
+        if (window.updateScrollbars) window.updateScrollbars();
       });
       
       // Reset direction lock quand la souris quitte le canvas
@@ -1883,6 +1947,25 @@
         });
       }
       
+      // ✅ LIMITES DE CARTE AVEC MARGE 20%
+      function clampTransform(transform) {
+        const scale = transform.k;
+        const margin = 0.2; // ✅ 20% de marge (réduit de 40%)
+        
+        const mapWidth = width * scale;
+        const mapHeight = height * scale;
+        
+        const minX = width - mapWidth - (width * margin);
+        const maxX = width * margin;
+        const minY = height - mapHeight - (height * margin);
+        const maxY = height * margin;
+        
+        const clampedX = Math.max(minX, Math.min(maxX, transform.x));
+        const clampedY = Math.max(minY, Math.min(maxY, transform.y));
+        
+        return d3.zoomIdentity.translate(clampedX, clampedY).scale(scale);
+      }
+
       function setupTextInsertion(svg, g) {
         let clickTimeout = null;
         let clickCount = 0;
@@ -2550,6 +2633,141 @@
           layerStrokes[layerType].clear();
         });
       }
+
+      // ===== STROKE TYPE & STYLING =====
+      let currentStrokeType = 'solid';
+      let currentStrokeThickness = 20;  // 20% = 0.2px (comme sélection)
+      let currentStrokeSpacing = 0;     // 0% = très serré
+
+      const STROKE_TYPES = {
+        'solid': { 
+          getPattern: null, 
+          linecap: 'butt'
+        },
+        'dash-3': { // Tirets longs
+          getPattern: (sw, spacing) => {
+            const dash = sw * 6;
+            const gap = sw * (0.5 + spacing * 0.08);
+            return `${dash} ${gap}`;
+          },
+          linecap: 'butt'
+        },
+        'dash-4': { // Tirets courts
+          getPattern: (sw, spacing) => {
+            const dash = sw * 3;
+            const gap = sw * (0.5 + spacing * 0.08);
+            return `${dash} ${gap}`;
+          },
+          linecap: 'butt'
+        },
+        'dotted': { // Points RONDS (cercles parfaits)
+          getPattern: (sw, spacing) => {
+            const gap = sw * (1.2 + spacing * 0.1);
+            return `0.001 ${gap}`;
+          },
+          linecap: 'round'
+        },
+        'long-short': { // Long-court
+          getPattern: (sw, spacing) => {
+            const longDash = sw * 8;
+            const shortDash = sw * 2.5;
+            const gap = sw * (0.5 + spacing * 0.08);
+            return `${longDash} ${gap} ${shortDash} ${gap}`;
+          },
+          linecap: 'butt'
+        },
+        'dash-dot': { // Tiret + petit rectangle
+          getPattern: (sw, spacing) => {
+            const dash = sw * 6;
+            const dot = sw;
+            const gap = sw * (0.5 + spacing * 0.08);
+            return `${dash} ${gap} ${dot} ${gap}`;
+          },
+          linecap: 'butt'
+        },
+        'dash-dot-dot': { // Tiret + 2 petits rectangles
+          getPattern: (sw, spacing) => {
+            const dash = sw * 6;
+            const dot = sw;
+            const gap = sw * (0.5 + spacing * 0.08);
+            return `${dash} ${gap} ${dot} ${gap} ${dot} ${gap}`;
+          },
+          linecap: 'butt'
+        },
+        'dotted-alt': { // CARRÉS parfaits
+          getPattern: (sw, spacing) => {
+            const gap = sw * (1.2 + spacing * 0.1);
+            return `${sw} ${gap}`;
+          },
+          linecap: 'butt'
+        }
+      };
+
+      // Convertir % épaisseur → pixels
+      // 0%=0.1px, 20%=0.2px (défaut), 100%=3px
+      function thicknessToPixels(percent) {
+        if (percent <= 20) {
+          return 0.1 + (percent / 20) * 0.1;
+        } else {
+          return 0.2 + ((percent - 20) / 80) * 2.8;
+        }
+      }
+
+      // Appliquer le style de stroke
+      function applyStrokeStyle(element, color, type, thicknessPercent, spacingPercent) {
+        if (!element) return;
+        
+        if (!color || color === 'transparent' || color === 'none') {
+          element.style.stroke = 'none';
+          element.style.strokeDasharray = 'none';
+          return;
+        }
+        
+        element.style.stroke = color;
+        
+        const config = STROKE_TYPES[type];
+        if (!config) {
+          console.warn('⚠️ Unknown stroke type:', type);
+          return;
+        }
+        
+        const strokeWidth = thicknessToPixels(thicknessPercent);
+        element.style.strokeWidth = strokeWidth;
+        
+        if (config.getPattern === null) {
+          element.style.strokeDasharray = 'none';
+        } else {
+          element.style.strokeDasharray = config.getPattern(strokeWidth, spacingPercent);
+        }
+        
+        element.style.strokeLinecap = config.linecap;
+        element.style.strokeLinejoin = 'miter';
+      }
+
+      // Mettre à jour tous les strokes sélectionnés
+      function updateSelectedStrokes() {
+        selectedCountries.forEach(countryId => {
+          const element = document.querySelector(`[data-country-id="${countryId}"]`);
+          if (element) {
+            const currentColor = countryStrokes.get(countryId) || element.style.stroke;
+            if (currentColor && currentColor !== 'none') {
+              applyStrokeStyle(element, currentColor, currentStrokeType, currentStrokeThickness, currentStrokeSpacing);
+            }
+          }
+        });
+        
+        ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+          selectedLayers[layerType].forEach(layerId => {
+            const element = document.querySelector(`[data-layer-id="${layerId}"]`);
+            if (element) {
+              const currentColor = layerStrokes[layerType].get(layerId) || element.style.stroke;
+              if (currentColor && currentColor !== 'none') {
+                applyStrokeStyle(element, currentColor, currentStrokeType, currentStrokeThickness, currentStrokeSpacing);
+              }
+            }
+          });
+        });
+      }
       
       function updateBubbleState() {
         window.selectedCountriesData = Array.from(selectedCountries).map(id => {
@@ -3047,6 +3265,71 @@
         updateStrokeWidth: updateStrokeWidth,
         clearSelection: clearSelection,
         resetAllColors: resetAllColors,
+
+         // ===== STROKE FUNCTIONS =====
+        applyStrokeColorToSelected: function(color) {
+          selectedCountries.forEach(countryId => {
+            const element = document.querySelector(`[data-country-id="${countryId}"]`);
+            if (element) {
+              if (color === 'transparent' || color === 'none') {
+                element.style.stroke = 'none';
+                element.style.strokeDasharray = 'none';
+                countryStrokes.delete(countryId);
+              } else {
+                countryStrokes.set(countryId, color);
+                applyStrokeStyle(element, color, currentStrokeType, currentStrokeThickness, currentStrokeSpacing);
+                element.classList.add('colored');
+              }
+            }
+          });
+          
+          ['regions', 'lakes', 'rivers', 'capitals'].forEach(layerType => {
+            selectedLayers[layerType].forEach(layerId => {
+              const element = document.querySelector(`[data-layer-id="${layerId}"]`);
+              if (element) {
+                if (color === 'transparent' || color === 'none') {
+                  element.style.stroke = 'none';
+                  element.style.strokeDasharray = 'none';
+                  layerStrokes[layerType].delete(layerId);
+                } else {
+                  layerStrokes[layerType].set(layerId, color);
+                  applyStrokeStyle(element, color, currentStrokeType, currentStrokeThickness, currentStrokeSpacing);
+                }
+              }
+            });
+          });
+          console.log('🎨 Stroke color applied:', color);
+        },
+        
+        applyStrokeType: function(type) {
+          if (!STROKE_TYPES.hasOwnProperty(type)) {
+            console.warn('⚠️ Unknown stroke type:', type);
+            return;
+          }
+          currentStrokeType = type;
+          updateSelectedStrokes();
+          console.log('📏 Stroke type applied:', type);
+        },
+        
+        applyStrokeThickness: function(percent) {
+          currentStrokeThickness = Math.max(0, Math.min(100, percent));
+          updateSelectedStrokes();
+          console.log('📐 Stroke thickness:', currentStrokeThickness + '%');
+        },
+        
+        applyStrokeSpacing: function(percent) {
+          currentStrokeSpacing = Math.max(0, Math.min(100, percent));
+          updateSelectedStrokes();
+          console.log('↔️ Stroke spacing:', currentStrokeSpacing + '%');
+        },
+        
+        getStrokeSettings: function() {
+          return {
+            type: currentStrokeType,
+            thickness: currentStrokeThickness,
+            spacing: currentStrokeSpacing
+          };
+        },
         getSelectedCountries: () => window.selectedCountriesData || [],
         
         applyCountrySpacing: applyCountrySpacing,
@@ -3060,7 +3343,7 @@
         toggleLayerForCountry: function(countryCode, layerType, isActive) {
           console.log(`🎯 Toggle ${layerType} for ${countryCode}:`, isActive);
           
-          // ✅ Convertir nom de pays → code ISO si nécessaire
+          // Convertir nom de pays → code ISO si nécessaire
           let isoCode = countryCode;
           if (countryNameToCode.has(countryCode)) {
             isoCode = countryNameToCode.get(countryCode);
@@ -3073,37 +3356,66 @@
           }
           
           const countryLayers = countryLayersActive.get(isoCode);
+          const config = LAYER_CONFIGS[layerType];
+          
+          if (!config) {
+            console.error('❌ Type de layer inconnu:', layerType);
+            return Promise.reject('Type inconnu');
+          }
           
           if (isActive) {
             // Ajouter ce layer pour ce pays
             countryLayers.add(layerType);
             
-            const config = LAYER_CONFIGS[layerType];
-            
-            // Charger le layer s'il n'est pas déjà chargé
-            if (!config.loaded) {
-              return loadLayer(layerType, currentDetailLevel)
-                .then(() => {
-                  renderLayer(layerType);
-                  updateLayerVisibility(layerType);
-                  console.log(`✅ ${layerType} chargé et affiché pour ${isoCode}`);
-                })
-                .catch(err => {
-                  console.error(`❌ Erreur activation ${layerType}:`, err);
-                });
-            } else {
-              // Layer déjà chargé, juste mettre à jour la visibilité
+            // ✅ CAS 1 : Déjà chargé → juste mettre à jour la visibilité
+            if (config.loaded) {
               updateLayerVisibility(layerType);
-              console.log(`✅ ${layerType} affiché pour ${isoCode}`);
+              console.log(`✅ ${layerType} affiché pour ${isoCode} (déjà en cache)`);
+              return Promise.resolve();
             }
+            
+            // ✅ CAS 2 : En cours de chargement → attendre la même Promise
+            if (config.loading && config.loadPromise) {
+              console.log(`⏳ ${layerType} en cours de chargement, attente...`);
+              return config.loadPromise.then(() => {
+                updateLayerVisibility(layerType);
+                console.log(`✅ ${layerType} affiché pour ${isoCode} (après attente)`);
+              });
+            }
+            
+            // ✅ CAS 3 : Premier appel → lancer le chargement
+            console.log(`📥 ${layerType} : premier chargement...`);
+            config.loading = true;
+            
+            config.loadPromise = loadLayer(layerType, currentDetailLevel)
+              .then(() => {
+                renderLayer(layerType);
+                config.loading = false;
+                // Note: config.loaded est déjà mis à true dans loadLayer()
+                updateLayerVisibility(layerType);
+                console.log(`✅ ${layerType} chargé et rendu (premier appel)`);
+              })
+              .catch(err => {
+                config.loading = false;
+                config.loadPromise = null;
+                console.error(`❌ Erreur chargement ${layerType}:`, err);
+                throw err;
+              });
+            
+            return config.loadPromise;
+            
           } else {
-            // Retirer ce layer pour ce pays
+            // Désactiver : retirer ce layer pour ce pays
             countryLayers.delete(layerType);
-            updateLayerVisibility(layerType);
-            console.log(`🙈 ${layerType} caché pour ${isoCode}`);
+            
+            // Si le layer est chargé, mettre à jour la visibilité
+            if (config.loaded) {
+              updateLayerVisibility(layerType);
+              console.log(`🙈 ${layerType} caché pour ${isoCode}`);
+            }
+            
+            return Promise.resolve();
           }
-          
-          return Promise.resolve();
         },
         
         // Obtenir les layers actifs d'un pays
@@ -3492,6 +3804,237 @@
         }
       };
       
+      // ✅ SCROLLBARS FIGMA-STYLE - PROPORTIONNELLES ET SYNCHRONISÉES
+      function initScrollbars() {
+        const scrollbarH = document.getElementById('scrollbar-h');
+        const scrollbarV = document.getElementById('scrollbar-v');
+        const thumbH = document.getElementById('scrollbar-thumb-h');
+        const thumbV = document.getElementById('scrollbar-thumb-v');
+        
+        if (!scrollbarH || !scrollbarV || !thumbH || !thumbV) {
+          console.warn('⚠️ Scrollbars non trouvées');
+          return;
+        }
+        
+        const margin = 0.2;
+        
+        // ✅ FONCTION CENTRALE : Mise à jour des scrollbars
+        window.updateScrollbars = function() {
+          const transform = d3.zoomTransform(svg.node());
+          const scale = transform.k;
+          
+          // === CALCUL DES LIMITES (identique à clampTransform) ===
+          const mapWidth = width * scale;
+          const mapHeight = height * scale;
+          
+          const minX = width - mapWidth - (width * margin);
+          const maxX = width * margin;
+          const minY = height - mapHeight - (height * margin);
+          const maxY = height * margin;
+          
+          const rangeX = maxX - minX;
+          const rangeY = maxY - minY;
+          
+          // === TAILLE DU THUMB (proportionnelle au zoom) ===
+          // À zoom 1 : thumb = ~100% (grande)
+          // À zoom 10 : thumb = ~10% (petite)
+          const trackWidth = scrollbarH.offsetWidth;
+          const trackHeight = scrollbarV.offsetHeight;
+          
+          // Ratio visible = viewport / carte totale avec marge
+          const visibleRatioX = Math.min(1, width / (mapWidth + width * margin * 2));
+          const visibleRatioY = Math.min(1, height / (mapHeight + height * margin * 2));
+          
+          const thumbWidth = Math.max(20, Math.min(trackWidth, trackWidth * visibleRatioX));
+          const thumbHeight = Math.max(20, Math.min(trackHeight, trackHeight * visibleRatioY));
+          
+          // === POSITION DU THUMB (0 = gauche/haut, 1 = droite/bas) ===
+          let ratioX = 0.5; // Centré par défaut
+          let ratioY = 0.5;
+          
+          if (rangeX > 0) {
+            ratioX = (maxX - transform.x) / rangeX;
+            ratioX = Math.max(0, Math.min(1, ratioX));
+          }
+          
+          if (rangeY > 0) {
+            ratioY = (maxY - transform.y) / rangeY;
+            ratioY = Math.max(0, Math.min(1, ratioY));
+          }
+          
+          // Position du thumb dans le track
+          const thumbX = ratioX * (trackWidth - thumbWidth);
+          const thumbY = ratioY * (trackHeight - thumbHeight);
+          
+          // === APPLICATION ===
+          thumbH.style.width = thumbWidth + 'px';
+          thumbH.style.left = thumbX + 'px';
+          
+          thumbV.style.height = thumbHeight + 'px';
+          thumbV.style.top = thumbY + 'px';
+        };
+        
+        // ===== DRAG SCROLLBAR HORIZONTAL =====
+        let isDraggingH = false;
+        let startDragX = 0;
+        let startThumbX = 0;
+        
+        thumbH.addEventListener('mousedown', (e) => {
+          isDraggingH = true;
+          startDragX = e.clientX;
+          startThumbX = parseFloat(thumbH.style.left) || 0;
+          document.body.style.userSelect = 'none';
+          document.body.style.cursor = 'default';
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        
+        // ===== DRAG SCROLLBAR VERTICAL =====
+        let isDraggingV = false;
+        let startDragY = 0;
+        let startThumbY = 0;
+        
+        thumbV.addEventListener('mousedown', (e) => {
+          isDraggingV = true;
+          startDragY = e.clientY;
+          startThumbY = parseFloat(thumbV.style.top) || 0;
+          document.body.style.userSelect = 'none';
+          document.body.style.cursor = 'default';
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+          if (isDraggingH) {
+            const transform = d3.zoomTransform(svg.node());
+            const scale = transform.k;
+            
+            const trackWidth = scrollbarH.offsetWidth;
+            const thumbWidth = thumbH.offsetWidth;
+            const maxThumbX = trackWidth - thumbWidth;
+            
+            // Nouvelle position du thumb
+            const dx = e.clientX - startDragX;
+            const newThumbX = Math.max(0, Math.min(maxThumbX, startThumbX + dx));
+            const ratio = maxThumbX > 0 ? newThumbX / maxThumbX : 0.5;
+            
+            // Convertir ratio → position carte
+            const mapWidth = width * scale;
+            const minX = width - mapWidth - (width * margin);
+            const maxX = width * margin;
+            const newX = maxX - ratio * (maxX - minX);
+            
+            let newTransform = d3.zoomIdentity.translate(newX, transform.y).scale(scale);
+            newTransform = clampTransform(newTransform);
+            
+            g.attr('transform', newTransform.toString());
+            svg.property('__zoom', newTransform);
+            window.updateScrollbars();
+          }
+          
+          if (isDraggingV) {
+            const transform = d3.zoomTransform(svg.node());
+            const scale = transform.k;
+            
+            const trackHeight = scrollbarV.offsetHeight;
+            const thumbHeight = thumbV.offsetHeight;
+            const maxThumbY = trackHeight - thumbHeight;
+            
+            // Nouvelle position du thumb
+            const dy = e.clientY - startDragY;
+            const newThumbY = Math.max(0, Math.min(maxThumbY, startThumbY + dy));
+            const ratio = maxThumbY > 0 ? newThumbY / maxThumbY : 0.5;
+            
+            // Convertir ratio → position carte
+            const mapHeight = height * scale;
+            const minY = height - mapHeight - (height * margin);
+            const maxY = height * margin;
+            const newY = maxY - ratio * (maxY - minY);
+            
+            let newTransform = d3.zoomIdentity.translate(transform.x, newY).scale(scale);
+            newTransform = clampTransform(newTransform);
+            
+            g.attr('transform', newTransform.toString());
+            svg.property('__zoom', newTransform);
+            window.updateScrollbars();
+          }
+        });
+        
+        document.addEventListener('mouseup', () => {
+          if (isDraggingH) {
+            isDraggingH = false;
+            thumbH.style.cursor = 'grab';
+          }
+          if (isDraggingV) {
+            isDraggingV = false;
+            document.body.style.cursor = 'default';
+          }
+          document.body.style.userSelect = '';
+        });
+        
+        // Click sur track (téléportation)
+        scrollbarH.addEventListener('click', (e) => {
+          if (e.target === thumbH) return;
+          
+          const transform = d3.zoomTransform(svg.node());
+          const scale = transform.k;
+          const rect = scrollbarH.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const trackWidth = scrollbarH.offsetWidth;
+          const thumbWidth = thumbH.offsetWidth;
+          
+          // Ratio basé sur le centre du thumb
+          const ratio = Math.max(0, Math.min(1, (clickX - thumbWidth / 2) / (trackWidth - thumbWidth)));
+          
+          const mapWidth = width * scale;
+          const minX = width - mapWidth - (width * margin);
+          const maxX = width * margin;
+          const newX = maxX - ratio * (maxX - minX);
+          
+          let newTransform = d3.zoomIdentity.translate(newX, transform.y).scale(scale);
+          newTransform = clampTransform(newTransform);
+          
+          g.attr('transform', newTransform.toString());
+          svg.property('__zoom', newTransform);
+          window.updateScrollbars();
+        });
+        
+        scrollbarV.addEventListener('click', (e) => {
+          if (e.target === thumbV) return;
+          
+          const transform = d3.zoomTransform(svg.node());
+          const scale = transform.k;
+          const rect = scrollbarV.getBoundingClientRect();
+          const clickY = e.clientY - rect.top;
+          const trackHeight = scrollbarV.offsetHeight;
+          const thumbHeight = thumbV.offsetHeight;
+          
+          // Ratio basé sur le centre du thumb
+          const ratio = Math.max(0, Math.min(1, (clickY - thumbHeight / 2) / (trackHeight - thumbHeight)));
+          
+          const mapHeight = height * scale;
+          const minY = height - mapHeight - (height * margin);
+          const maxY = height * margin;
+          const newY = maxY - ratio * (maxY - minY);
+          
+          let newTransform = d3.zoomIdentity.translate(transform.x, newY).scale(scale);
+          newTransform = clampTransform(newTransform);
+          
+          g.attr('transform', newTransform.toString());
+          svg.property('__zoom', newTransform);
+          window.updateScrollbars();
+        });
+        
+        // Initial update
+        setTimeout(() => {
+          window.updateScrollbars();
+          console.log('✅ Scrollbars Figma-style initialisées');
+        }, 100);
+      }
+
+      // Appeler après le chargement de la carte
+      setTimeout(initScrollbars, 500);
+
       console.log('✅ MapFlow initialisé avec gestion optimisée des layers par pays');
     }
     
