@@ -1,12 +1,12 @@
-# 🗺️ MapFlow
+# MapFlow
 
 Interactive map editor built with Bubble.io and D3.js
 
-## 🎯 Project Overview
+## Project Overview
 
 MapFlow is a SaaS web application that allows users to create custom interactive maps quickly and easily. Built as a no-code/low-code hybrid using Bubble.io for the interface and D3.js for advanced map rendering.
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 - **Frontend Platform**: Bubble.io (no-code)
 - **Map Rendering**: D3.js + TopoJSON
@@ -16,7 +16,7 @@ MapFlow is a SaaS web application that allows users to create custom interactive
   - OpenAI GPT-4o-mini (AI-powered country selection)
   - Stripe (payments)
 
-## 📂 Project Structure
+## Project Structure
 ```
 mapflow/
 ├── bubble/              # Bubble-related code
@@ -25,12 +25,12 @@ mapflow/
 └── README.md
 ```
 
-## 🚀 Current Status
+## Current Status
 
 **Version**: MVP Development  
 **Last Updated**: November 2025
 
-### ✅ Completed Features
+### Completed Features
 - Interactive world map with zoom/pan
 - Country selection (single/multiple)
 - Country coloring (60-color palette)
@@ -39,17 +39,17 @@ mapflow/
 - Text-country linking with animations
 - Countries filtering panel
 
-### 🚧 In Progress
+### In Progress
 - Custom color picker
 - Save/Load functionality
 - Export (PNG/SVG)
 
-## 👨‍💻 Development
+## Development
 
 Working solo with 2-3 hours daily  
 Budget: <300€/month  
 Framework: Hybrid no-code/code approach
 
-## 📝 License
+## License
 
 Private project - All rights reserved
